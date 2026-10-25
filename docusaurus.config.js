@@ -68,7 +68,6 @@ const config = {
           { type: "docSidebar", sidebarId: "guides", position: "left", label: "Guides" },
           { type: "docSidebar", sidebarId: "api", position: "left", label: "API" },
           { to: "/whats-new", label: "What's new", position: "right" },
-          { href: "https://datavillage.ai", label: "Datavillage", position: "right" },
         ],
       },
       footer: {
@@ -77,7 +76,6 @@ const config = {
           { title: "Documentation", items: [{ label: "Overview", to: "/" }, { label: "Glossary", to: "/concepts/glossary" }, { label: "The detection cycle", to: "/processes/detection-cycle" }] },
           { title: "Guides", items: [{ label: "Write a scenario", to: "/guides/write-a-scenario" }, { label: "Investigate and open a case", to: "/guides/investigate-and-open-a-case" }] },
           { title: "API", items: [{ label: "Integration contract", to: "/integration/contract" }, { label: "API reference", to: "/api/fraud-engineering-studio-api" }] },
-          { title: "Datavillage", items: [{ label: "Website", href: "https://datavillage.ai" }] },
         ],
         copyright: `© ${new Date().getFullYear()} Datavillage`,
       },

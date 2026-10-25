@@ -14,6 +14,11 @@ Scenarios, triages and calibrations change only by a new version. **Every change
 who made it and when. A run records the versions it ran with, so any alert can be traced to the exact logic that
 raised it.
 
+## Nothing is deleted
+
+A scenario that is no longer wanted is **retired**: it stops running, and its versions, runs and alerts stay, so
+every past alert can still be explained.
+
 ## Every change is checked
 
 Before a scenario or a triage is saved, the knowledge base's validator checks it: conditions name existing

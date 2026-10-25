@@ -28,6 +28,8 @@ same.
 | Load results into your data platform | `GET /api/export/alerts?format=parquet` |
 | Collect, then run, on a schedule | `POST /api/sources/{source_id}/refresh`, then `POST /api/analyses/{analysis_id}/runs` |
 | Read the detection logic | `GET /api/scenarios/{scenario_id}`, `GET /api/detections/{scenario_id}` |
+| Create, update, calibrate or retire a scenario | see [Manage scenarios with the API](../guides/manage-scenarios-with-the-api.md) |
+| Keep your lists in sync | `POST /api/lists/{list_id}` |
 | Export a typology for another engine or a review | `GET /api/ofef-export/{typology}?calibration=1` |
 
 ## Conventions

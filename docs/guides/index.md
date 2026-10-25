@@ -16,3 +16,4 @@ description: Step-by-step guides for the everyday tasks in the Studio.
 | [Write a scenario](write-a-scenario.md) | Turn a fraud pattern into a detection, step by step. |
 | [Calibrate a scenario](calibrate-a-scenario.md) | Set the values a scenario runs with, and test them. |
 | [Edit a triage](edit-a-triage.md) | Change how alerts are prioritised and what decision is proposed. |
+| [Manage scenarios with the API](manage-scenarios-with-the-api.md) | Create, update, calibrate and retire scenarios from your own tools. |

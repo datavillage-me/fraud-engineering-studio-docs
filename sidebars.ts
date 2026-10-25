@@ -16,6 +16,7 @@ const sidebars: SidebarsConfig = {
     "guides/write-a-scenario",
     "guides/calibrate-a-scenario",
     "guides/edit-a-triage",
+    "guides/manage-scenarios-with-the-api",
   ],
   api: [
     "integration/contract",

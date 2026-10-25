@@ -16,13 +16,20 @@ info:
 
     All bodies are JSON (`Content-Type: application/json`). Errors return `{"error": "<message>"}` with
     `400` (invalid request), `404` (not found) or `500` (server error).
-  contact: { name: Datavillage, url: "https://datavillage.ai" }
 servers:
   - url: http://localhost:8770
     description: A Studio running locally
 tags:
   - name: Knowledge
     description: The typologies and their scenarios, as written, calibrated and exported.
+  - name: Calibration
+    description: The values a scenario runs with in this Studio, versioned.
+  - name: Lists
+    description: Your brands, trusted parties and watchlists, which scenarios check against.
+  - name: Sources
+    description: The systems the Studio collects data from.
+  - name: Analyses
+    description: A typology run on the current data, with the scenarios chosen.
   - name: Alerts
     description: What a detection raised, one per unit (a page, a domain, an account...) and per run.
   - name: Cases
@@ -31,8 +38,6 @@ tags:
     description: Alerts and cases as files, for a data platform or a report.
   - name: Collection
     description: Start a data collection from a source, and follow it.
-  - name: Runs
-    description: Run the scenarios of an analysis, and follow it.
   - name: Service
     description: Is the Studio up.
 
@@ -67,6 +72,49 @@ paths:
                     scenarios: { type: array, items: { type: string }, example: [FSL-BIP-001, FSL-BID-001] }
                     ready: { type: boolean, description: "Whether it can run (at least one calibrated scenario)." }
 
+  /api/scenarios:
+    post:
+      tags: [Knowledge]
+      operationId: createScenario
+      summary: Create a scenario
+      description: |
+        A new scenario, as a **draft**: its title and steps, each step naming an existing indicator. Checked before it is
+        kept, like an edit; its id, journey stage, owner and parameters are deduced from the typology's scenarios on the
+        same unit. Rule conditions only — a condition the AI judges is added with ✦ Write with AI. A scenario runs once
+        it is calibrated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ScenarioNew" }
+            example:
+              typology: brand-impersonation-online
+              unit: UNIT-FIP-SITE
+              title: A look-alike website that asks for its visitors' secrets
+              steps:
+                - { role: given, text: "the domain was discovered by one of <discovery_criteria>", indicator: IND-DOMAIN-FOUND-BY-CRITERIA }
+                - { role: given, text: "the domain is not one of the brand's own domains", indicator: IND-DOMAIN-NOT-BRAND-OWNED }
+                - { role: when, text: "the site answers with a page of its own", indicator: IND-SITE-IS-LIVE }
+                - { role: when, text: "the domain name resembles the brand", indicator: IND-DOMAIN-RESEMBLES-BRAND }
+              note: Sites that collect credentials, reported by the fraud desk.
+      responses:
+        "200": { description: The new scenario., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/scenarios/{scenario_id}/retire:
+    post:
+      tags: [Knowledge]
+      operationId: retireScenario
+      summary: Retire a scenario
+      description: The scenario no longer runs. Its versions, runs and alerts are kept — a detection that raised alerts is never deleted.
+      parameters: [{ $ref: "#/components/parameters/scenario_id" }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/Note" }, example: { note: "Replaced by FSL-BID-004." } } }
+      responses:
+        "200": { description: The scenario, retired., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
   /api/scenarios/{scenario_id}:
     get:
       tags: [Knowledge]
@@ -77,6 +125,23 @@ paths:
       responses:
         "200": { description: The scenario., content: { application/json: { schema: { type: object } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [Knowledge]
+      operationId: updateScenario
+      summary: Update a scenario or a triage
+      description: |
+        A new version, with a note saying why. A scenario: its title, its steps (each naming an existing indicator) and
+        the questions of its AI conditions. A triage (TRI-…): its rules in order — the first whose conditions all hold
+        gives the result. Checked before it is kept; a change that does not pass is refused and nothing is written.
+      parameters: [{ $ref: "#/components/parameters/scenario_id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { oneOf: [{ $ref: "#/components/schemas/ScenarioUpdate" }, { $ref: "#/components/schemas/TriageUpdate" }] }
+      responses:
+        "200": { description: The scenario or the triage, new version., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
 
   /api/detections/{scenario_id}:
     get:
@@ -88,6 +153,27 @@ paths:
       responses:
         "200": { description: The detection and its calibration., content: { application/json: { schema: { type: object } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [Calibration]
+      operationId: calibrate
+      summary: Calibrate a scenario
+      description: A new calibration version — the values of its rule parameters and the AI answers that count — with a note saying why. The next runs use it.
+      parameters: [{ $ref: "#/components/parameters/scenario_id" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [note]
+              properties:
+                rules: { type: object, description: "Parameter name → value.", additionalProperties: true }
+                ai: { type: object, description: "AI question → the answers that count as met.", additionalProperties: true }
+                note: { type: string }
+            example: { rules: { discovery_criteria: ["ad link: example-bank"] }, note: "Ads of the brand only." }
+      responses:
+        "200": { description: The detection with its new calibration., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
 
   /api/ofef-export/{typology}:
     get:
@@ -105,6 +191,159 @@ paths:
       responses:
         "200": { description: A zip file., content: { application/zip: { schema: { type: string, format: binary } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/lists:
+    get:
+      tags: [Lists]
+      operationId: listLists
+      summary: List lists
+      responses:
+        "200": { description: The lists and the kinds of list., content: { application/json: { schema: { type: object } } } }
+    post:
+      tags: [Lists]
+      operationId: createList
+      summary: Create a list
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, name, kind]
+              properties:
+                id: { type: string, example: trusted-partners }
+                name: { type: string, example: Trusted partners }
+                kind: { type: string, description: "Own, trusted or watchlist (GET /api/lists gives the kinds)." }
+                publisher: { type: string }
+                description: { type: string }
+      responses:
+        "200": { description: The list., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/lists/{list_id}:
+    parameters: [{ name: list_id, in: path, required: true, schema: { type: string }, example: protected-brands }]
+    get:
+      tags: [Lists]
+      operationId: getList
+      summary: Get a list
+      responses:
+        "200": { description: The list and its entries., content: { application/json: { schema: { type: object } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [Lists]
+      operationId: changeList
+      summary: Add, update or remove an entry
+      description: "`{entry}` adds an entry, or replaces the one named by `original`; `{action: remove, id}` removes one."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required: [entry]
+                  properties:
+                    entry: { $ref: "#/components/schemas/ListEntry" }
+                    original: { type: string, description: "The id of the entry it replaces." }
+                - type: object
+                  required: [action, id]
+                  properties: { action: { type: string, enum: [remove] }, id: { type: string } }
+            example: { entry: { name: Example Bank, identifiers: { domain: [example-bank.com], name: [example bank] } } }
+      responses:
+        "200": { description: The list., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/sources:
+    get:
+      tags: [Sources]
+      operationId: listSources
+      summary: List sources
+      responses:
+        "200": { description: The sources and enrichments, what each holds and its last collections., content: { application/json: { schema: { type: object } } } }
+    post:
+      tags: [Sources]
+      operationId: saveSource
+      summary: Create or update a source
+      description: Checked before it is written — a known connector, an existing mapping, a configuration the connector accepts. Secrets are never sent here; they are set on the server.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, name, connector, mapping_ref]
+              properties:
+                id: { type: string }
+                name: { type: string }
+                connector: { type: string }
+                mapping_ref: { type: string }
+                default_mode: { type: string }
+                config: { type: object, additionalProperties: true }
+      responses:
+        "200": { description: The source., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/sources/{source_id}:
+    get:
+      tags: [Sources]
+      operationId: getSource
+      summary: Get a source
+      parameters: [{ name: source_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: The source., content: { application/json: { schema: { type: object } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/sources/{source_id}/archive:
+    post:
+      tags: [Sources]
+      operationId: archiveSource
+      summary: Archive a source
+      description: The source no longer collects; what it collected stays.
+      parameters: [{ name: source_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: Archived., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/analyses:
+    get:
+      tags: [Analyses]
+      operationId: listAnalyses
+      summary: List analyses
+      responses:
+        "200": { description: The analyses., content: { application/json: { schema: { type: array, items: { type: object } } } } }
+    post:
+      tags: [Analyses]
+      operationId: createAnalysis
+      summary: Create an analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [name, typology], properties: { name: { type: string }, typology: { type: string } } }
+            example: { name: Brand watch — weekly, typology: brand-impersonation-online }
+      responses:
+        "200": { description: The analysis., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/analyses/{analysis_id}:
+    parameters: [{ name: analysis_id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Analyses]
+      operationId: getAnalysis
+      summary: Get an analysis
+      responses:
+        "200": { description: The analysis, its scenarios and its runs., content: { application/json: { schema: { type: object } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [Analyses]
+      operationId: renameAnalysis
+      summary: Rename an analysis
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [name], properties: { name: { type: string } } } } }
+      responses:
+        "200": { description: The analysis., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
 
   /api/alerts:
     get:
@@ -265,7 +504,7 @@ paths:
 
   /api/analyses/{analysis_id}/runs:
     post:
-      tags: [Runs]
+      tags: [Analyses]
       operationId: startRun
       summary: Start a run
       parameters: [{ name: analysis_id, in: path, required: true, schema: { type: string } }]
@@ -279,7 +518,7 @@ paths:
 
   /api/runs/{run_id}:
     get:
-      tags: [Runs]
+      tags: [Analyses]
       operationId: getRun
       summary: Follow a run
       parameters: [{ name: run_id, in: path, required: true, schema: { type: string } }]
@@ -296,6 +535,63 @@ components:
     NotFound: { description: Not found., content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { error: not found } } } }
     Invalid: { description: Invalid request., content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { error: "a note is required for this reason" } } } }
   schemas:
+    Note:
+      type: object
+      required: [note]
+      properties: { note: { type: string, description: "Why — kept with the new version." } }
+    Step:
+      type: object
+      required: [role, text, indicator]
+      properties:
+        role: { type: string, enum: [given, when], description: "given: the population; when: a condition." }
+        text: { type: string, description: "In plain words. Name a parameter as <name>." }
+        indicator: { type: string, example: IND-SITE-IS-LIVE }
+    ScenarioNew:
+      type: object
+      required: [typology, title, steps, note]
+      properties:
+        typology: { type: string }
+        unit: { type: string, description: "What one alert is about; required when the typology has several." }
+        title: { type: string, description: "The fraud as it shows, without its conditions." }
+        steps: { type: array, items: { $ref: "#/components/schemas/Step" } }
+        severity: { type: string, enum: [low, medium, high, critical] }
+        note: { type: string }
+    ScenarioUpdate:
+      type: object
+      required: [steps, note]
+      properties:
+        title: { type: string }
+        steps: { type: array, items: { $ref: "#/components/schemas/Step" } }
+        questions:
+          type: array
+          description: The questions of its AI conditions.
+          items: { type: object, properties: { key: { type: string }, question: { type: string }, answers: { type: array, items: { type: string } } } }
+        note: { type: string }
+    TriageUpdate:
+      type: object
+      required: [rules, note]
+      properties:
+        rules:
+          type: array
+          description: In order. Only the last rule may have no condition.
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              conditions: { type: array, items: { type: object, properties: { text: { type: string }, indicator: { type: string } } } }
+              priority: { type: [string, "null"], enum: [critical, high, medium, low, null] }
+              disposition: { type: [string, "null"], description: "A decision to propose — or a priority, not both." }
+        note: { type: string }
+    ListEntry:
+      type: object
+      required: [name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        category: { type: string }
+        country: { type: string }
+        url: { type: string }
+        identifiers: { type: object, description: "Kind → values (name, domain, page id…).", additionalProperties: { type: array, items: { type: string } } }
     Error:
       type: object
       properties: { error: { type: string } }

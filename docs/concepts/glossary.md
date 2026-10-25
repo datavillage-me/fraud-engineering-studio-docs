@@ -26,5 +26,6 @@ description: The words the Studio uses, one line each.
 | **Inspection** | A deeper look at one record — screenshots, page text, forms, the ads of a page — kept as evidence. |
 | **Evidence** | What an inspection saw, kept with its date: images, text, facts. |
 | **Calibration** | The values a scenario runs with in your institution: thresholds, the AI answers that count, the population. A scenario runs only once calibrated. |
+| **Retired** | A scenario that no longer runs. It is never deleted: its versions, runs and alerts stay. |
 | **Version** | Every change to a scenario, a triage or a calibration makes a new version, with a note saying why. |
 | **Taxonomy** | A standard classification of fraud used to qualify a confirmed case. |
