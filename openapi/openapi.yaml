@@ -8,7 +8,8 @@ info:
   summary: Read and act on alerts and cases from your own systems.
   description: |
     The integration contract of the Fraud Engineering Studio: the routes your case-management system, SIEM or data
-    platform calls to read alerts and cases, record decisions, export results and start collections or runs.
+    platform calls to read alerts and cases, record decisions, export results, read and export the detection logic, and start
+    collections or runs.
 
     **Status.** This is the contract the Studio implements today. This version has **no authentication**: run the
     Studio inside your own network, behind your access controls. API keys come in a later version.
@@ -20,6 +21,8 @@ servers:
   - url: http://localhost:8770
     description: A Studio running locally
 tags:
+  - name: Knowledge
+    description: The typologies and their scenarios, as written, calibrated and exported.
   - name: Alerts
     description: What a detection raised, one per unit (a page, a domain, an account...) and per run.
   - name: Cases
@@ -43,6 +46,65 @@ paths:
         "200":
           description: The Studio is up.
           content: { application/json: { schema: { type: object, properties: { studio: { type: boolean } } }, example: { studio: true } } }
+
+  /api/typologies:
+    get:
+      tags: [Knowledge]
+      operationId: listTypologies
+      summary: List typologies
+      responses:
+        "200":
+          description: The typologies this Studio runs, with their scenarios.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    slug: { type: string, example: brand-impersonation-online }
+                    name: { type: string, example: Brand Impersonation -- Online }
+                    scenarios: { type: array, items: { type: string }, example: [FSL-BIP-001, FSL-BID-001] }
+                    ready: { type: boolean, description: "Whether it can run (at least one calibrated scenario)." }
+
+  /api/scenarios/{scenario_id}:
+    get:
+      tags: [Knowledge]
+      operationId: getScenario
+      summary: Get a scenario
+      description: The scenario as written — its title, its Given and When steps with the indicator of each, and the questions its AI conditions ask. A triage id (TRI-…) returns the triage's rules.
+      parameters: [{ $ref: "#/components/parameters/scenario_id" }]
+      responses:
+        "200": { description: The scenario., content: { application/json: { schema: { type: object } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/detections/{scenario_id}:
+    get:
+      tags: [Knowledge]
+      operationId: getDetection
+      summary: Get a scenario's detection
+      description: What runs — the scenario's conditions with their indicators and AI questions — and this Studio's calibration of it (values, version, history).
+      parameters: [{ $ref: "#/components/parameters/scenario_id" }]
+      responses:
+        "200": { description: The detection and its calibration., content: { application/json: { schema: { type: object } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/ofef-export/{typology}:
+    get:
+      tags: [Knowledge]
+      operationId: exportTypology
+      summary: Export a typology
+      description: |
+        A typology and its scenarios as portable files — the scenarios in Gherkin, their indicators, features and AI
+        questions — for another detection engine or for review. With `calibration=1`, this Studio's calibration is
+        included.
+      parameters:
+        - { name: typology, in: path, required: true, schema: { type: string }, example: brand-impersonation-online }
+        - { name: scenarios, in: query, description: "Only these scenarios, comma-separated (all when absent).", schema: { type: string } }
+        - { name: calibration, in: query, schema: { type: integer, enum: [0, 1], default: 0 } }
+      responses:
+        "200": { description: A zip file., content: { application/zip: { schema: { type: string, format: binary } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   /api/alerts:
     get:
@@ -227,6 +289,7 @@ paths:
 
 components:
   parameters:
+    scenario_id: { name: scenario_id, in: path, required: true, schema: { type: string }, example: FSL-BID-001 }
     alert_id: { name: alert_id, in: path, required: true, schema: { type: string } }
     case_id: { name: case_id, in: path, required: true, schema: { type: string }, example: C-20261025-4d5e6f }
   responses:

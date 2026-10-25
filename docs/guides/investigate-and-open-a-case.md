@@ -21,8 +21,14 @@ domain a site redirects to. Each can become a case of its own, linked to the fir
 
 ## Follow where it leads
 
-1. In an ad's capture, click the site under **Leads to**. The site opens in the side panel.
-2. Click **Inspect** to look at the site: its pages, where it redirects, the forms it shows.
+Inspections record where a record leads: an ad to its site, a site to the site it redirects to. A record shows
+**Leads to** and **Reached from**, with the dates each link was seen. If a site starts redirecting elsewhere, the new
+destination is added; nothing is overwritten.
+
+1. Click a site under **Leads to** — in a record, or in an ad's capture. It opens in the side panel.
+2. Click **Inspect** to look at it: its pages, the forms it shows, and where it leads in turn.
+
+Each link of the chain enters the data, found the same way as the first one, so the scenarios can find it too.
 
 ## Open a case on it
 

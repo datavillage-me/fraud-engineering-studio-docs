@@ -27,6 +27,8 @@ same.
 | Open a case from a report | `POST /api/cases` |
 | Load results into your data platform | `GET /api/export/alerts?format=parquet` |
 | Collect, then run, on a schedule | `POST /api/sources/{source_id}/refresh`, then `POST /api/analyses/{analysis_id}/runs` |
+| Read the detection logic | `GET /api/scenarios/{scenario_id}`, `GET /api/detections/{scenario_id}` |
+| Export a typology for another engine or a review | `GET /api/ofef-export/{typology}?calibration=1` |
 
 ## Conventions
 
@@ -78,6 +80,15 @@ curl -s -X POST "http://localhost:8770/api/cases/C-20261025-4d5e6f" \
 ```
 
 A case closed as confirmed fraud must be qualified first (`"action": "qualify"`).
+
+### Export a typology
+
+```bash
+curl -s -o typology.zip "http://localhost:8770/api/ofef-export/brand-impersonation-online?calibration=1"
+```
+
+The zip holds the typology's scenarios in Gherkin, their indicators, features and AI questions, and — with
+`calibration=1` — the values they run with here. Another engine can run them; a reviewer can read them.
 
 ### Export for a data platform
 

@@ -18,4 +18,7 @@ description: The changes to the Fraud Engineering Studio, the most recent first.
   the site it leads to.
 - **Source catalogue.** Add a source from a catalogue grouped by kind of data, each with the technical connections it
   supports.
-- **API.** The [integration contract](/integration/contract) and its [reference](/api/fraud-engineering-studio-api).
+- **Chains.** An inspection records where a record leads — an ad to its site, a site to where it redirects — with
+  when it was seen. Each record shows **Leads to** and **Reached from**, and every link of the chain can become a case.
+- **API.** The [integration contract](/integration/contract) and its [reference](/api/fraud-engineering-studio-api), including the
+  detection logic and the export of a typology.
