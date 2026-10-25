@@ -1,0 +1,27 @@
+{
+  "name": "fraud-engineering-studio-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Documentation of the Fraud Engineering Studio by Datavillage",
+  "scripts": {
+    "sync-api": "node scripts/sync-api.js",
+    "gen-api": "docusaurus gen-api-docs all",
+    "clean-api": "docusaurus clean-api-docs all",
+    "start": "npm run gen-api && docusaurus start",
+    "build": "npm run clean-api && npm run gen-api && docusaurus build",
+    "serve": "docusaurus serve"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@mdx-js/react": "^3.1.0",
+    "clsx": "^2.1.1",
+    "docusaurus-plugin-openapi-docs": "5.2.0",
+    "docusaurus-theme-openapi-docs": "5.2.0",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "engines": { "node": ">=20" },
+  "browserslist": { "production": [">0.5%", "not dead", "not op_mini all"], "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"] }
+}

@@ -1,0 +1,317 @@
+# The Studio's integration contract (OpenAPI 3.1): the routes a bank's own systems call -- read alerts and cases,
+# decide on them, export them, start a collection or a run. Served by the Studio at /api/openapi.yaml and published
+# in the documentation (fraud-engineering-studio-docs). Checked against the routes the server declares: tools/check_openapi.py.
+openapi: 3.1.0
+info:
+  title: Fraud Engineering Studio API
+  version: 1.0.0
+  summary: Read and act on alerts and cases from your own systems.
+  description: |
+    The integration contract of the Fraud Engineering Studio: the routes your case-management system, SIEM or data
+    platform calls to read alerts and cases, record decisions, export results and start collections or runs.
+
+    **Status.** This is the contract the Studio implements today. This version has **no authentication**: run the
+    Studio inside your own network, behind your access controls. API keys come in a later version.
+
+    All bodies are JSON (`Content-Type: application/json`). Errors return `{"error": "<message>"}` with
+    `400` (invalid request), `404` (not found) or `500` (server error).
+  contact: { name: Datavillage, url: "https://datavillage.ai" }
+servers:
+  - url: http://localhost:8770
+    description: A Studio running locally
+tags:
+  - name: Alerts
+    description: What a detection raised, one per unit (a page, a domain, an account...) and per run.
+  - name: Cases
+    description: An investigation of one subject. Opened when an alert is escalated, or by hand.
+  - name: Exports
+    description: Alerts and cases as files, for a data platform or a report.
+  - name: Collection
+    description: Start a data collection from a source, and follow it.
+  - name: Runs
+    description: Run the scenarios of an analysis, and follow it.
+  - name: Service
+    description: Is the Studio up.
+
+paths:
+  /api/ping:
+    get:
+      tags: [Service]
+      operationId: ping
+      summary: Check the service
+      responses:
+        "200":
+          description: The Studio is up.
+          content: { application/json: { schema: { type: object, properties: { studio: { type: boolean } } }, example: { studio: true } } }
+
+  /api/alerts:
+    get:
+      tags: [Alerts]
+      operationId: listAlerts
+      summary: List alerts
+      parameters:
+        - { name: typology, in: query, description: "Typology ids, comma-separated.", schema: { type: string }, example: brand-impersonation-online }
+        - { name: status, in: query, description: "Statuses, comma-separated.", schema: { type: string, enum: [new, closed, escalated] }, example: new }
+      responses:
+        "200":
+          description: The alerts, the most recent first.
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Alert" } } } }
+
+  /api/alerts/{alert_id}:
+    parameters: [{ $ref: "#/components/parameters/alert_id" }]
+    get:
+      tags: [Alerts]
+      operationId: getAlert
+      summary: Get an alert
+      responses:
+        "200": { description: The alert, with what its scenarios found., content: { application/json: { schema: { $ref: "#/components/schemas/Alert" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [Alerts]
+      operationId: decideAlert
+      summary: Decide on an alert
+      description: |
+        Close it with one of its typology's reasons, escalate it to the case of its subject (a new case if none is
+        open), or reopen it (the decision and its effects are undone).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AlertDecision" }
+            examples:
+              escalate: { value: { action: escalate, note: "Same site as the case already open." } }
+              close: { value: { action: close, disposition: homonym, note: "A shop with the same name." } }
+      responses:
+        "200": { description: The alert after the decision., content: { application/json: { schema: { $ref: "#/components/schemas/Alert" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/cases:
+    get:
+      tags: [Cases]
+      operationId: listCases
+      summary: List cases
+      parameters:
+        - { name: typology, in: query, description: "Typology ids, comma-separated.", schema: { type: string } }
+        - { name: status, in: query, description: "Statuses, comma-separated.", schema: { type: string }, example: "open,in_review" }
+      responses:
+        "200":
+          description: The cases, the most recent first.
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Case" } } } }
+    post:
+      tags: [Cases]
+      operationId: openCase
+      summary: Open a case
+      description: |
+        A case opened by hand: a fraud known from elsewhere (a complaint, a report), or a record found while
+        investigating another case (`from_case`). If a case is already open on this subject, it is returned.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CaseOpen" }
+            example: { entity: ExternalDomain, id: secure-login-example.com, typology: brand-impersonation-online, from_case: C-20261013-1a2b3c }
+      responses:
+        "200": { description: The case., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/cases/{case_id}:
+    parameters: [{ $ref: "#/components/parameters/case_id" }]
+    get:
+      tags: [Cases]
+      operationId: getCase
+      summary: Get a case
+      responses:
+        "200": { description: The case, its alerts, notes, history and related cases., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [Cases]
+      operationId: actOnCase
+      summary: Act on a case
+      description: |
+        `review` (in review), `close` (with a reason of one of its typologies), `reopen` (effects undone), `note`
+        (add a note), `qualify` (the fraud's qualification, required to close as confirmed fraud).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CaseAction" }
+            examples:
+              note: { value: { action: note, note: "Hosting provider notified." } }
+              close: { value: { action: close, typology: brand-impersonation-online, disposition: impersonation, note: "Site taken down." } }
+      responses:
+        "200": { description: The case after the action., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/cases/{case_id}/share:
+    parameters: [{ $ref: "#/components/parameters/case_id" }]
+    get:
+      tags: [Cases]
+      operationId: shareCase
+      summary: Get a case to share
+      description: A confirmed fraud in a shareable form, without your internal notes, for another institution or a fraud-sharing network.
+      responses:
+        "200": { description: The shareable case., content: { application/json: { schema: { type: object } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/export/{kind}:
+    get:
+      tags: [Exports]
+      operationId: export
+      summary: Export alerts or cases
+      parameters:
+        - { name: kind, in: path, required: true, schema: { type: string, enum: [alerts, cases] } }
+        - { name: format, in: query, schema: { type: string, enum: [csv, json, parquet], default: csv } }
+        - { name: typology, in: query, description: "Typology ids, comma-separated.", schema: { type: string } }
+        - { name: status, in: query, description: "Statuses, comma-separated.", schema: { type: string } }
+      responses:
+        "200":
+          description: A file, one row per alert or case.
+          content:
+            text/csv: { schema: { type: string } }
+            application/json: { schema: { type: array, items: { type: object } } }
+            application/vnd.apache.parquet: { schema: { type: string, format: binary } }
+
+  /api/sources/{source_id}/refresh:
+    post:
+      tags: [Collection]
+      operationId: startCollection
+      summary: Start a collection
+      parameters: [{ name: source_id, in: path, required: true, schema: { type: string }, example: ad-library-be }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode: { type: string, description: "One of the source's modes (its default when absent)." }
+                scope: { type: array, items: { type: string }, description: "Only these list entries or topics." }
+            example: { mode: update, scope: [example-bank] }
+      responses:
+        "200":
+          description: The id of the job started (or of the one already running for this source).
+          content: { application/json: { schema: { type: object, properties: { job: { type: string } } }, example: { job: 20261025_091500_ab12 } } }
+
+  /api/refresh/{job_id}:
+    get:
+      tags: [Collection]
+      operationId: getCollection
+      summary: Follow a collection
+      parameters: [{ name: job_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: The job., content: { application/json: { schema: { $ref: "#/components/schemas/Job" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/analyses/{analysis_id}/runs:
+    post:
+      tags: [Runs]
+      operationId: startRun
+      summary: Start a run
+      parameters: [{ name: analysis_id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { scenarios: { type: array, items: { type: string }, description: "Only these scenarios (all when absent)." } } }
+      responses:
+        "200": { description: The id of the run started (or of the one already running)., content: { application/json: { schema: { type: object, properties: { run: { type: string } } } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/runs/{run_id}:
+    get:
+      tags: [Runs]
+      operationId: getRun
+      summary: Follow a run
+      parameters: [{ name: run_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: The run, its progress and counts., content: { application/json: { schema: { type: object } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  parameters:
+    alert_id: { name: alert_id, in: path, required: true, schema: { type: string } }
+    case_id: { name: case_id, in: path, required: true, schema: { type: string }, example: C-20261025-4d5e6f }
+  responses:
+    NotFound: { description: Not found., content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { error: not found } } } }
+    Invalid: { description: Invalid request., content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { error: "a note is required for this reason" } } } }
+  schemas:
+    Error:
+      type: object
+      properties: { error: { type: string } }
+    Entity:
+      type: object
+      description: The record an alert or a case is about.
+      properties:
+        type: { type: string, example: ExternalDomain }
+        id: { type: string, example: secure-login-example.com }
+        label: { type: string }
+    Alert:
+      type: object
+      properties:
+        alert_id: { type: string }
+        typology: { type: string, example: brand-impersonation-online }
+        scenarios: { type: array, items: { type: string }, example: [FSL-BID-001] }
+        entity: { $ref: "#/components/schemas/Entity" }
+        title: { type: string }
+        raised: { type: string, description: "When it was raised (UTC)." }
+        status: { type: string, enum: [new, closed, escalated] }
+        disposition: { type: [string, "null"], description: The reason it was closed with. }
+        note: { type: [string, "null"] }
+        case_id: { type: [string, "null"], description: The case it was escalated to. }
+        subject_case: { type: [string, "null"], description: A case already open on the same subject. }
+        triage:
+          type: [object, "null"]
+          description: The triage's proposal.
+          properties:
+            priority: { type: [string, "null"], enum: [critical, high, medium, low, null] }
+            disposition: { type: [string, "null"] }
+            rule: { type: [string, "null"] }
+    AlertDecision:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [close, escalate, reopen] }
+        disposition: { type: string, description: "With close: one of the typology's reasons." }
+        note: { type: string }
+    Case:
+      type: object
+      properties:
+        case_id: { type: string }
+        typologies: { type: array, items: { type: string } }
+        entity: { $ref: "#/components/schemas/Entity" }
+        status: { type: string, enum: [open, in_review, closed_confirmed_fraud, closed_confirmed_concern, closed_false_positive, closed_indeterminate] }
+        disposition: { type: [string, "null"] }
+        origin: { type: string, enum: [alert, manual] }
+        alerts: { type: array, items: { type: string } }
+        from_case: { type: [string, "null"], description: The case whose investigation led to this one. }
+        opened: { type: string }
+        opened_by: { type: string }
+        closed: { type: [string, "null"] }
+    CaseOpen:
+      type: object
+      required: [entity, id]
+      properties:
+        entity: { type: string, description: "The subject's type." }
+        id: { type: string, description: "The subject's id." }
+        typology: { type: string, description: "Required when several typologies have cases about this type." }
+        note: { type: string }
+        from_case: { type: string, description: "The case whose investigation found it." }
+    CaseAction:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [review, close, reopen, note, qualify] }
+        typology: { type: string }
+        disposition: { type: string }
+        note: { type: string }
+        qual: { type: object, description: "With qualify: {payment_observed, values: {<group>: name | [names]}}." }
+    Job:
+      type: object
+      properties:
+        id: { type: string }
+        source: { type: string }
+        mode: { type: string }
+        stage: { type: string }
+        progress: { type: number, minimum: 0, maximum: 1 }
+        finished: { type: boolean }
+        status: { type: string, description: "ok | error | stopped, once finished." }
+        error: { type: [string, "null"] }
+        counts: { type: [object, "null"], description: "What was written, per entity." }
