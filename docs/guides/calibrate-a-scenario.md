@@ -15,7 +15,6 @@ run with different values in two institutions.
 2. Set the values:
    - **Rule parameters** — a threshold, a number of days, a list to check against.
    - **AI answers** — which answers to each AI question count as met.
-   - **Population** — the discovery criteria the scenario looks at, picked from those present in the data.
 3. Run an analysis with the scenario to see the effect, step by step: how many units each condition keeps.
 4. Click **Save as v2** (the next version) and write why. The next runs use the new version.
 

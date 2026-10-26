@@ -24,7 +24,7 @@ engineer adds a rule to the [triage](../guides/edit-a-triage).
 A case opened by hand is a fraud the detection did not alert on: from a complaint, a report, or found while
 investigating another case. For each one, the fraud engineer asks *what would have found it?*
 
-- the population was too narrow → widen the scenario's discovery criteria in its calibration;
+- the data did not hold it → add the source that would have brought it;
 - a condition was too strict → calibrate it;
 - nothing looks at this pattern → [write a new scenario](../guides/write-a-scenario).
 

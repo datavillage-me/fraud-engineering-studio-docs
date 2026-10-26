@@ -30,7 +30,7 @@ A variant is often better handled by a calibration or a triage rule.
 
 The scenario in plain language:
 
-- **Given** — the population: records chosen by how they were found or by a status, from collected data only.
+- **Given** — the population: facts about the record itself — its name, a status — never how it was found.
 - **When / And** — the conditions, one fact each, cheapest first: rules before AI.
 - **Then it becomes a finding** — always the same.
 
@@ -39,8 +39,8 @@ give yet are listed as **left out**, with what they would need.
 
 ```gherkin
 Scenario: A page named like the brand that advertises
-  Given the page was found by one of the discovery criteria
-  And the page is not one of the brand's own pages
+  Given the page is not one of the brand's own pages
+  And the page name contains the brand name or an alias
   When the page ran at least one ad
   And the page presents itself as the brand
   Then it becomes a finding
@@ -77,4 +77,6 @@ A new scenario is a **draft** and does not run yet. [Calibrate it](calibrate-a-s
 - The population (*Given*) uses collected data only; anything costly — reading a website, asking the AI — is a *When*.
 - A condition is a fact, not a judgment: *the domain is less than 30 days old* belongs to the calibration as
   *the domain is recent*.
-- Never name a source in a scenario: say how the record was found, not where.
+- A scenario looks at every record of its kind, whatever source brought it. Never filter on a source or on how a
+  record was found: that is evidence, not a condition.
+- Cheap conditions first: a scenario keeps its cost low by checking the name before reading the site or asking the AI.

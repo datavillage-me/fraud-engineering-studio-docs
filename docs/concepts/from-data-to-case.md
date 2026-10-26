@@ -12,21 +12,20 @@ description: How a record found by a source becomes a decided case.
 
 A source collects records — the pages that advertise with your brand name, the websites scanned with your name in
 them, your accounts and payments — and maps them to one common data model. A domain is a domain, whichever source
-found it. Each record keeps **how it was found** (for example *ad search: example-bank*), which scenarios use to choose
-their population.
+found it. Each record keeps **how it was found** (for example *an ad of a page named Example Bank*), shown as evidence.
 
 ## 2. Scenarios look at the data
 
-A scenario starts from a population (*Given*) and checks its conditions in order, cheapest first (*When*). Rule
+A scenario looks at every record of its kind, whichever source brought it. It starts from a population — facts about
+the record itself (*Given*) — and checks its conditions in order, cheapest first (*When*). Rule
 conditions are computed; AI conditions are asked to a language model only on what the rules kept. When a scenario
 needs data it does not have yet — a website's text, a page's ads — the matching **enrichment** reads it during the run.
 
 ```gherkin
 Scenario: A look-alike website of the brand
-  Given the domain was found by one of the discovery criteria
-  And the domain is not one of the brand's own
-  When the site answers
-  And the domain's name resembles the brand
+  Given the domain is not one of the brand's own
+  When the domain's name resembles the brand
+  And the site answers
   And the site presents itself as the brand
   Then it becomes a finding
 ```

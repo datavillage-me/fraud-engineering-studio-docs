@@ -22,7 +22,7 @@ that does not pass is refused and nothing is written.
 ## 1. Create a draft
 
 Give the typology, the unit, the title and the steps. Each step names an existing indicator; a value the calibration
-sets is written `<name>` in the step.
+sets is written `<name>` in the step. A *Given* is a fact about the record itself, never how it was found.
 
 ```bash
 curl -s -X POST http://localhost:8770/api/scenarios -H "Content-Type: application/json" -d '{
@@ -30,7 +30,6 @@ curl -s -X POST http://localhost:8770/api/scenarios -H "Content-Type: applicatio
   "unit": "UNIT-FIP-SITE",
   "title": "A look-alike website that asks for its visitors'\'' secrets",
   "steps": [
-    {"role": "given", "text": "the domain was discovered by one of <discovery_criteria>", "indicator": "IND-DOMAIN-FOUND-BY-CRITERIA"},
     {"role": "given", "text": "the domain is not one of the brand'\''s own domains", "indicator": "IND-DOMAIN-NOT-BRAND-OWNED"},
     {"role": "when",  "text": "the site answers with a page of its own", "indicator": "IND-SITE-IS-LIVE"},
     {"role": "when",  "text": "the domain name resembles the brand", "indicator": "IND-DOMAIN-RESEMBLES-BRAND"}
@@ -65,7 +64,7 @@ A scenario runs only once calibrated. Set its parameters and save a new calibrat
 
 ```bash
 curl -s -X POST http://localhost:8770/api/detections/FSL-BID-004 -H "Content-Type: application/json" \
-  -d '{"rules": {"discovery_criteria": ["ad link: example-bank"]}, "note": "Ads of the brand only."}'
+  -d '{"rules": {"max_followers": 500}, "note": "Small pages only."}'
 ```
 
 ## 4. Retire it
