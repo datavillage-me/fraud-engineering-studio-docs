@@ -4,7 +4,7 @@ import apiSidebar from "./docs/api/sidebar"; // generated from openapi/openapi.y
 const sidebars: SidebarsConfig = {
   docs: [
     "intro",
-    { type: "category", label: "Concepts", collapsed: false, items: ["concepts/glossary", "concepts/from-data-to-case"] },
+    { type: "category", label: "Concepts", collapsed: false, items: ["concepts/how-detection-works", "concepts/glossary", "concepts/from-data-to-case", "concepts/coverage"] },
     { type: "category", label: "Processes", collapsed: false, items: ["processes/detection-cycle", "processes/improvement-cycle", "processes/governance"] },
   ],
   guides: [
@@ -15,6 +15,7 @@ const sidebars: SidebarsConfig = {
     "guides/investigate-and-open-a-case",
     "guides/write-a-scenario",
     "guides/calibrate-a-scenario",
+    "guides/export-to-another-engine",
     "guides/edit-a-triage",
     "guides/manage-scenarios-with-the-api",
   ],

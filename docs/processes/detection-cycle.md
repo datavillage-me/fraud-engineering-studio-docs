@@ -6,14 +6,15 @@ description: Who does what, from a collection to a decided case.
 
 # The detection cycle
 
-The detection cycle runs again and again: collect, analyse, triage, investigate, decide.
+The detection cycle runs again and again on the data a detection watches: collect, analyse, triage, investigate,
+decide. It lives in the **Live** space; a run on synthetic data is a test and never enters it.
 
 | Step | Who | What happens | Where |
 |---|---|---|---|
-| **1. Collect** | Fraud engineer, or a schedule | Sources bring new records, with how each was found. | Data › Sources |
-| **2. Analyse** | Fraud engineer | An analysis runs its scenarios on the data. Enrichments read what the scenarios need. | Analysis › Analyses |
-| **3. Send to alerts** | Fraud engineer | The run's findings are reviewed and sent to Alerts. | A run's results |
-| **4. Triage** | Automatic | Each alert gets a priority and, when possible, a proposed decision. | Analysis › Alerts |
+| **1. Collect** | Fraud engineer, or a schedule | Sources bring new records, with how each was found. | Studio › Data |
+| **2. Analyse** | Fraud engineer | An analysis runs its scenarios on the data. Enrichments read what the scenarios need. | Analyses |
+| **3. Send to alerts** | Fraud engineer, or the analysis by itself | Findings are sent to Alerts — by hand, or by themselves for the priorities set in the analysis. | An analysis › Findings |
+| **4. Triage** | Automatic | Each alert gets a priority and, when possible, a proposed decision. | Live › Investigations |
 | **5. Decide the alert** | Analyst | Close it with a reason, or escalate it to a case. | An alert |
 | **6. Investigate** | Analyst | Inspect the subject and what it leads to, add notes, open related cases. | A case |
 | **7. Close the case** | Analyst | Close with a reason; qualify a confirmed fraud. Effects apply to the next runs. | A case |

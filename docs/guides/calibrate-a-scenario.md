@@ -6,7 +6,7 @@ description: Set the values a scenario runs with, test them, and save a new vers
 
 # Calibrate a scenario
 
-**Where:** Knowledge › Scenarios › a scenario › **Calibration**
+**Where:** Studio › Fraud library › Scenarios › a scenario › **Calibration**
 
 A scenario says *what* to check; its calibration says *with which values* in your institution. The same scenario can
 run with different values in two institutions.
@@ -15,7 +15,8 @@ run with different values in two institutions.
 2. Set the values:
    - **Rule parameters** — a threshold, a number of days, a list to check against.
    - **AI answers** — which answers to each AI question count as met.
-3. Run an analysis with the scenario to see the effect, step by step: how many units each condition keeps.
+3. Run an analysis with the scenario on synthetic data to see the effect: how many cases each condition keeps, and
+   the frauds caught and false alarms under **Results**.
 4. Click **Save as v2** (the next version) and write why. The next runs use the new version.
 
 :::tip Start strict

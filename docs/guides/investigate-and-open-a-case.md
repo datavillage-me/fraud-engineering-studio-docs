@@ -6,7 +6,7 @@ description: Follow a case to what it leads to, inspect it, and open a case on i
 
 # Investigate and open a case
 
-**Where:** Analysis › Cases
+**Where:** Live › Investigations › Cases
 
 A case is about one subject. Investigating it often leads to other records: the website a page's ads lead to, the
 domain a site redirects to. Each can become a case of its own, linked to the first.

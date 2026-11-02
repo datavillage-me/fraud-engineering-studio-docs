@@ -90,7 +90,7 @@ paths:
             schema: { $ref: "#/components/schemas/ScenarioNew" }
             example:
               typology: brand-impersonation-online
-              unit: UNIT-FIP-SITE
+              unit: UNIT-WEB-SITE
               title: A look-alike website that asks for its visitors' secrets
               steps:
                 - { role: given, text: "the domain is not one of the brand's own domains", indicator: IND-DOMAIN-NOT-BRAND-OWNED }
@@ -182,8 +182,10 @@ paths:
       summary: Export a typology
       description: |
         A typology and its scenarios as portable files — the scenarios in Gherkin, their indicators, features and AI
-        questions — for another detection engine or for review. With `calibration=1`, this Studio's calibration is
-        included.
+        questions — for another detection engine or for review, built on demand. It is an execution package: only the
+        features the chosen scenarios need, `context.yaml` (the context to compute: per unit, one column per feature and what it reads), `dependencies.yaml`
+        (the graph) and one SQL script per scenario (`sql/<id>.sql`, the engine's steps over the canonical tables). With
+        `calibration=1`, this Studio's calibration is included and its values are written into the scripts.
       parameters:
         - { name: typology, in: path, required: true, schema: { type: string }, example: brand-impersonation-online }
         - { name: scenarios, in: query, description: "Only these scenarios, comma-separated (all when absent).", schema: { type: string } }
@@ -345,6 +347,26 @@ paths:
         "200": { description: The analysis., content: { application/json: { schema: { type: object } } } }
         "400": { $ref: "#/components/responses/Invalid" }
 
+  /api/context:
+    get:
+      tags: [Knowledge]
+      operationId: scenariosContext
+      summary: What a selection of scenarios needs
+      description: Their dependency graph (indicators, features, canonical fields and lists), whether each field is present in the data checked, the history needed, and whether each scenario can decide in real time (every indicator ex_ante).
+      parameters:
+        - { name: scenarios, in: query, required: true, description: "Scenario ids, comma-separated.", schema: { type: string }, example: "FSL-MULE-008,FSL-MULE-011" }
+        - { name: dataset, in: query, description: "The data to check against (default: production).", schema: { type: string }, example: fca-sandbox }
+        - { name: lineage, in: query, description: "1: the lineage only (knowledge, no data): per unit, the fields read -> the context columns -> the steps.", schema: { type: integer, enum: [0, 1] } }
+      responses:
+        "200": { description: "{scenarios, entities, lists, populations, counts}" }
+  /api/investigations:
+    get:
+      tags: [Alerts]
+      operationId: investigationsOverview
+      summary: The Investigations page
+      description: Every alert in a compact form (typology, scenarios, priority, status, what it was found for, the sources that found it, the typology's reports once confirmed) and the cases with their reports outside.
+      responses:
+        "200": { description: "{alerts: [...], cases: [...]}" }
   /api/alerts:
     get:
       tags: [Alerts]
@@ -453,14 +475,80 @@ paths:
       responses:
         "200": { description: The shareable case., content: { application/json: { schema: { type: object } } } }
         "404": { $ref: "#/components/responses/NotFound" }
-
+  /api/cases/{case_id}/reports:
+    parameters: [{ $ref: "#/components/parameters/case_id" }]
+    post:
+      tags: [Cases]
+      operationId: reportCase
+      summary: Record that a case was reported
+      description: The case was reported outside -- to an authority, a platform, another institution -- by your own means. Records to whom, when and the reference, never the report itself.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to, recipient]
+              properties:
+                to: { type: string, enum: [authority, platform, institution, other] }
+                recipient: { type: string, example: "the financial intelligence unit" }
+                reference: { type: string }
+                sent: { type: string, format: date, description: "Default: today." }
+                note: { type: string }
+      responses:
+        "200": { description: The case, with its reports., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "400": { description: Missing or wrong field. }
+  /api/cases/{case_id}/reports/{report_id}:
+    parameters: [{ $ref: "#/components/parameters/case_id" }, { name: report_id, in: path, required: true, schema: { type: string } }]
+    post:
+      tags: [Cases]
+      operationId: updateCaseReport
+      summary: Follow the answer to a report, or withdraw it
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [sent, acknowledged, acted_on, no_action] }
+                reference: { type: string }
+                note: { type: string }
+                action: { type: string, enum: [withdraw], description: "A report recorded by mistake: no longer shown, never erased." }
+      responses:
+        "200": { description: The case, with its reports., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "400": { description: No such report, or a wrong status. }
+  /api/reports:
+    get:
+      tags: [Exports]
+      operationId: listReports
+      summary: The reports this deployment runs
+      description: The reports of the knowledge base (OFEF reports/*.yaml) -- id, name, question, parameters.
+      responses:
+        "200": { description: The reports., content: { application/json: { schema: { type: array, items: { type: object } } } } }
+  /api/reports/{report_id}:
+    parameters: [{ name: report_id, in: path, required: true, schema: { type: string } }]
+    get:
+      tags: [Exports]
+      operationId: runReport
+      summary: Run a report
+      description: Each section's rows, computed now on the real data. Parameters (e.g. days) as query values.
+      responses:
+        "200": { description: The report., content: { application/json: { schema: { type: object } } } }
+  /api/reports/{report_id}/export:
+    parameters: [{ name: report_id, in: path, required: true, schema: { type: string } }, { name: format, in: query, schema: { type: string, enum: [csv, json] } }]
+    get:
+      tags: [Exports]
+      operationId: exportReport
+      summary: Export a report
+      description: "json: the whole report; csv: its detail sections (a zip when there are several)."
+      responses:
+        "200": { description: A file. }
   /api/export/{kind}:
     get:
       tags: [Exports]
       operationId: export
-      summary: Export alerts or cases
+      summary: Export alerts, cases or reports
       parameters:
-        - { name: kind, in: path, required: true, schema: { type: string, enum: [alerts, cases] } }
+        - { name: kind, in: path, required: true, description: "reports: one row per report of a case.", schema: { type: string, enum: [alerts, cases, reports] } }
         - { name: format, in: query, schema: { type: string, enum: [csv, json, parquet], default: csv } }
         - { name: typology, in: query, description: "Typology ids, comma-separated.", schema: { type: string } }
         - { name: status, in: query, description: "Statuses, comma-separated.", schema: { type: string } }
@@ -507,11 +595,12 @@ paths:
       tags: [Analyses]
       operationId: startRun
       summary: Start a run
+      description: "On the real data, the findings whose priority the analysis sends by itself (auto_alert) become alerts; the others can be sent by hand. On a test dataset (header X-Studio-Dataset), the run is measured against its labels and raises no alert."
       parameters: [{ name: analysis_id, in: path, required: true, schema: { type: string } }]
       requestBody:
         content:
           application/json:
-            schema: { type: object, properties: { scenarios: { type: array, items: { type: string }, description: "Only these scenarios (all when absent)." } } }
+            schema: { type: object, properties: { scenarios: { type: array, items: { type: string }, description: "Only these scenarios (all when absent)." }, reuse: { type: array, items: { type: string }, description: "The scenarios whose earlier AI answers are reused." } } }
       responses:
         "200": { description: The id of the run started (or of the one already running)., content: { application/json: { schema: { type: object, properties: { run: { type: string } } } } } }
         "400": { $ref: "#/components/responses/Invalid" }

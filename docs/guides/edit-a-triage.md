@@ -6,7 +6,7 @@ description: Change how alerts are prioritised and which decision is proposed.
 
 # Edit a triage
 
-**Where:** Knowledge › Scenarios › a triage › **Edit**
+**Where:** Studio › Fraud library › Scenarios › a triage › **Edit**
 
 A triage is an ordered list of rules. For each alert, **the first rule whose conditions all hold gives the result**:
 a priority (critical, high, medium, low) or a proposed decision (a homonym, the brand's own page…).

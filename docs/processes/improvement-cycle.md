@@ -30,5 +30,7 @@ investigating another case. For each one, the fraud engineer asks *what would ha
 
 ## Measure
 
-Every run keeps its results and every decision its reason, so the effect of a change is measured on the next runs:
-how many alerts, how many confirmed, how many closed as false positives.
+Before going live, a change is measured on synthetic data: the frauds caught and the false alarms, Rules and AI side by
+side. After, every run keeps its results and every decision its reason, so the effect of a change is measured on the
+next runs: how many alerts, how many confirmed, how many closed as false positives. [Coverage](../concepts/coverage)
+shows how far each fraud type has gone.

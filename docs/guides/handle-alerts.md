@@ -6,7 +6,11 @@ description: Decide an alert — close it with a reason, or escalate it to a cas
 
 # Handle alerts
 
-**Where:** Analysis › Alerts
+**Where:** Live › Investigations › Alerts
+
+**Investigations** opens on what is to decide: one tile per scenario, fraud type or priority (**Group by**), each with
+the number of alerts and what the typology says to do once a fraud is confirmed — *report to the platform*, for
+example. A tile opens the alerts it counts. Below, the cases by status and the alerts by source.
 
 The queue is ordered by the triage's priority. An alert shows what it is about, the scenarios that found it with the
 conditions they checked, and the triage's proposal.
