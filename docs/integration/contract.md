@@ -31,10 +31,21 @@ same.
 | Create, update, calibrate or retire a scenario | see [Manage scenarios with the API](../guides/manage-scenarios-with-the-api.md) |
 | Keep your lists in sync | `POST /api/lists/{list_id}` |
 | Export a typology for another engine or a review | `GET /api/ofef-export/{typology}?calibration=1` |
+| See what scenarios need: data, context, real time | `GET /api/context?scenarios=…&lineage=1` |
+| Read the Investigations overview: alerts by category, cases | `GET /api/investigations` |
+| Act for one organisation | header `X-Studio-Org: <id>` on every call; `GET /api/organisations` lists them |
+| Pull the findings of the Threat Monitoring use cases | `GET /api/scam/triage` |
+| Run a use case on a schedule | `POST /api/scam/triage` with `{"group": "online-scams"}` |
+| Share a confirmed fraud, a scenario or signals | `POST /api/exchange` |
+| Read what other organisations shared | `GET /api/exchange/inbox`, then `POST /api/exchange/{id}` to watch, activate or dismiss |
+| Answer the people who reported a site | `POST /api/records/{entity}/{id}/replies` |
+| Read coverage and declare a scenario in service | `GET /api/coverage`, `POST /api/deployments` |
 
 ## Conventions
 
 - **Base URL** — where the Studio runs, for example `http://localhost:8770`.
+- **Organisation** — the header `X-Studio-Org` says which organisation a call acts for. Without it, the platform's own.
+- **Sites** — a website is returned with the link it was found with, its path kept: `entity.label` and `url`.
 - **Bodies** — JSON, `Content-Type: application/json`.
 - **Errors** — `{"error": "<message>"}` with `400` (invalid request), `404` (not found) or `500` (server error).
 - **Times** — UTC.
@@ -89,8 +100,10 @@ A case closed as confirmed fraud must be qualified first (`"action": "qualify"`)
 curl -s -o typology.zip "http://localhost:8770/api/ofef-export/brand-impersonation-online?calibration=1"
 ```
 
-The zip holds the typology's scenarios in Gherkin, their indicators, features and AI questions, and — with
-`calibration=1` — the values they run with here. Another engine can run them; a reviewer can read them.
+The zip is an execution package: the scenarios in Gherkin, their indicators, features and AI questions — only those the
+scenarios need — the **context builder** of each unit and each scenario as SQL (`run/`), `context.yaml` and
+`dependencies.yaml`, and — with `calibration=1` — the values they run with here, written into the SQL. Add
+`scenarios=…` to export some scenarios only. See [Export to another engine](../guides/export-to-another-engine.md).
 
 ### Export for a data platform
 

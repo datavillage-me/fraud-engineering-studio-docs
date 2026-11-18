@@ -6,7 +6,7 @@ description: Follow a case to what it leads to, inspect it, and open a case on i
 
 # Investigate and open a case
 
-**Where:** Live › Investigations › Cases
+**Where:** Threat Monitoring › a use case › **Cases**
 
 A case is about one subject. Investigating it often leads to other records: the website a page's ads lead to, the
 domain a site redirects to. Each can become a case of its own, linked to the first.
@@ -43,8 +43,19 @@ When a scenario later raises an alert on the same subject, escalating the alert 
 is opened.
 :::
 
-## Close the case
+## Decide and close the case
 
-1. Add notes as you go with **Add note**.
-2. Click **Close case**, choose a reason and add a note. A confirmed fraud is qualified in the fraud taxonomy before it
-   can be closed.
+A case moves through four steps, shown at the top of its panel:
+
+1. **Investigate** — read the evidence: the alerts and what each scenario saw, the subject and its records. Write what
+   you find with **Add note**; the first note puts the case in review. Then **I have looked — decide →**.
+2. **Decide** — choose the outcome: confirmed fraud, concern, not fraud, undecided.
+3. **Qualify** — a confirmed fraud is qualified in the fraud taxonomy: what was observed, and whether a payment was
+   made.
+4. **Confirm** — the case closes with its decision. Its effects apply to the next runs.
+
+## Share it
+
+A confirmed and qualified fraud can be passed on to other organisations: **Share case**, choose who receives it, add a
+note. Only the case share goes — its typology, its signal and the scenarios that found it, never customer data. See
+[Share threat intelligence](share-threat-intelligence).

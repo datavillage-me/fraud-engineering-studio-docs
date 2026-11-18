@@ -6,7 +6,7 @@ description: Turn a fraud pattern into a detection, step by step.
 
 # Write a scenario
 
-**Where:** Studio › Fraud library › Typologies › a typology › **✦ Write with AI**, next to its scenarios
+**Where:** Detection Engineering › **Scenarios** › a typology › **✦ Write with AI**, next to its scenarios. **Library** shows scenarios read-only.s
 
 A scenario is written in six steps. **✦ Write with AI** guides you through them with the knowledge base's method; you
 validate each step with **Validate step** before the next one. An existing scenario can also be edited by hand with

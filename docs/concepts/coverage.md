@@ -6,30 +6,34 @@ description: What you are protected against, scenario by scenario, and where the
 
 # Coverage
 
-**Where:** Report › Coverage, in both spaces
+**Where:** Overview › **Coverage**
 
-Coverage answers one question: *what are we protected against?* Each scenario is at one of four levels, each one a fact
-the Studio records, never a judgement:
+Coverage answers one question: *what are we protected against?* For each scenario it records facts, never judgements:
 
-| Level | The scenario… |
+| Fact | The scenario… |
 |---|---|
 | **Documented** | is in the fraud library. |
-| **Calibrated** | has every value it needs set for your institution. |
-| **Tested** | ran on synthetic or labelled data, and was measured. |
-| **Executed** | ran on the data it watches. |
+| **Calibrated** | has every value it needs set for your organisation. |
+| **Deployed here** | runs in your Threat Monitoring or Detection Engineering. |
+| **Deployed elsewhere** | is declared in service on your own engine. |
+| **Tested** | ran on labelled test data, and was measured. |
+| **Pentested** | was played by [Fraud Pentesting](fraud-pentesting) on your application. |
+| **Shared** | has confirmed frauds of its kind — cases that can be shared through [Threat Intelligence](threat-intelligence). |
 
-The levels add up: an executed scenario was also tested, calibrated and documented. A fraud type is at the furthest
-level of its scenarios.
+Each fact stands on its own — they are not a ladder — and keeps the day it first held, so the report shows how
+coverage moves.
 
 ## What the report shows
 
-- **Fraud types** and **Scenarios** — how many reached each level.
-- **Maturity by fraud type** — one column per level, one card per fraud type in the column it reached. A card opens the
-  fraud type.
-- **Scenarios by fraud type** — one square per scenario, coloured by its level. Hover a square to see the scenario;
-  click it to open it. Click a level in the legend to keep only the scenarios that reached it.
+- **Where the defences sit** — each fact by stage of the fraud journey, as a heat map.
+- **Whether they hold** — the latest pentest of each scenario, by stage: blocked, friction, allowed.
+- **Whether it moves** — each fact over the last 12 weeks.
+- **The table** — fraud types or scenarios, one column per fact. A cell opens its scenarios, read-only.
 
-In **Studio**, the report covers the whole library. In **Live**, it covers only the fraud types that run.
+**Overview › Activity** shows what happened over a period: calibrations, library changes, deployments declared or
+withdrawn, exports, runs — and on the monitoring side, alerts and cases.
 
-**Detail (CSV)** exports every scenario with its level, its last runs and its last measures — the detail an auditor
-reads.
+## Declared elsewhere
+
+A scenario that runs on your own engine is declared there, with the engine and the date it started, so Coverage — and
+Fraud Pentesting with **Active scenarios** — count it. From the API: `POST /api/deployments`.

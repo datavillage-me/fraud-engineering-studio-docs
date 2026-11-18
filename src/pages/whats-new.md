@@ -7,11 +7,40 @@ description: The changes to the Fraud Engineering Studio, the most recent first.
 
 ## November 2026
 
+- **A new menu.** Overview, Detection Engineering, Threat Monitoring, Fraud Pentesting, Threat Intelligence, Library
+  and Connections replace the Studio and Live spaces. See the [Overview](/).
+- **Threat Monitoring by use case.** Online scams, fraudulent webshops, APP scam receiving accounts and payments to
+  reported mules, each with its Dashboard, Findings, Alerts and Cases. **Analyze with AI** runs a use case end to end.
+  See [Threat Monitoring](/concepts/threat-monitoring).
+- **Organisations.** One Studio serves several organisations, each with its own data, calibrations, lists and cases.
+  See [Organisations](/concepts/organisations).
+- **Threat Intelligence.** Share a confirmed fraud, a scenario or signals with other organisations — never customer
+  data. A watched account feeds **Payments to reported mules**. See [Threat Intelligence](/concepts/threat-intelligence).
+- **Fraud Pentesting.** An AI agent plays a fraudster's behaviour on your own application in staging and records what
+  your defences did. See [Fraud Pentesting](/concepts/fraud-pentesting).
+- **Calibration results.** One table: true positives, false negatives, false positives, recall, precision and F1, for
+  all scenarios and per scenario. Library shows calibrations read-only; they change in Detection Engineering. See
+  [Calibrate a scenario](/guides/calibrate-a-scenario).
+- **Sites named by their link.** A website is shown everywhere — lists, analyses, details — with the link it was found
+  with, its path kept; **Site ↗** opens it there.
+- **Back when found again.** An alert closed because its site was taken down returns to Findings when a later run finds
+  the site online again.
+- **Cases in four steps.** Investigate, Decide, Qualify, Confirm — then **Share case**.
+- **Answers to reporters.** People who reported a site through a source that takes answers get one, drafted with AI and
+  reviewed by the analyst.
+- **Coverage, fact by fact.** Documented, calibrated, deployed here or elsewhere, tested, pentested, shared — by stage
+  of the fraud journey and over 12 weeks.
+- **API 1.1.** Organisations, Threat Intelligence, Threat Monitoring findings, replies, coverage, pentesting. See the
+  [integration contract](/integration/contract).
+
 - **Two spaces: Studio and Live.** The top bar switches between designing and testing detections (Studio) and
   following what runs — alerts, cases, decisions (Live).
 - **Export with the context.** The export is built on demand: the data required, the **context builder** — every value
   the scenarios read, for each case — and the scenarios, as SQL that runs as it is. See
   [Export to another engine](/guides/export-to-another-engine).
+- **Real time.** In the export, every value says how it is kept at the moment of the payment, and **Also as a
+  stream** adds the values that can be computed payment by payment (Flink SQL) — the same definitions as the SQL. See
+  [In real time](/guides/export-to-another-engine#in-real-time).
 - **Context tab.** A scenario's **Context** tab shows the data it needs and the values it computes.
 - **Coverage.** Four levels — documented, calibrated, tested, executed — by fraud type and by scenario, in the Studio
   for the whole library and in Live for what runs. See [Coverage](/concepts/coverage).

@@ -6,17 +6,14 @@ description: Decide an alert — close it with a reason, or escalate it to a cas
 
 # Handle alerts
 
-**Where:** Live › Investigations › Alerts
+**Where:** Threat Monitoring › a use case › **Alerts**
 
-**Investigations** opens on what is to decide: one tile per scenario, fraud type or priority (**Group by**), each with
-the number of alerts and what the typology says to do once a fraud is confirmed — *report to the platform*, for
-example. A tile opens the alerts it counts. Below, the cases by status and the alerts by source.
-
-The queue is ordered by the triage's priority. An alert shows what it is about, the scenarios that found it with the
-conditions they checked, and the triage's proposal.
+The list shows the **new** alerts, ordered by the triage's priority. The status filter adds the **closed** and
+**escalated** ones. An alert shows what it is about — a site with the link it was found with — the scenarios that found
+it with the conditions they checked, and the triage's proposal.
 
 1. Open an alert.
-2. Check the triage's proposed decision, if any, against what you see.
+2. Check the triage's proposed decision, if any, against what you see. **Site ↗** opens the site at the link found.
 3. Choose:
    - **Yes — investigate it** to escalate. The alert joins the case of its subject — a new case if none is open. If a
      case is already open on the same subject, the alert says which one.
@@ -25,3 +22,12 @@ conditions they checked, and the triage's proposal.
 4. Confirm.
 
 To change a decision, open the alert and click **Reopen alert**. Its effects are undone.
+
+:::info Closed, then back
+A site closed because its host took it down, then found again online by a later run, comes back under **Findings**.
+:::
+
+## Raise an alert by hand
+
+From a finding no scenario retained — or any record — **Raise an alert** puts it in the queue with a typology and a
+note.

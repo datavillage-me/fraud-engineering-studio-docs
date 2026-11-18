@@ -6,7 +6,7 @@ description: Connect a new kind of data from the catalogue.
 
 # Add a source
 
-**Where:** Studio › Data › Online or Synthetic
+**Where:** **Connections**
 
 1. Click **+ New source**. The catalogue opens, grouped by kind of data: institution data, ads, websites and domains,
    regulators…
@@ -27,13 +27,13 @@ choice appears next to **Collect** when there is one.
 Open a source and its **Scenarios** tab: the scenarios of the library that can run on this data — in use, or ready to
 calibrate — and those that already use it but need more, grouped by what is missing.
 
-## Synthetic data
+## Test datasets
 
-**Data › Synthetic** holds labelled datasets, each in its own store, apart from the online data. An analysis run on
-them is measured against the labels and never raises an alert.
+**Connections** also holds the labelled test datasets — synthetic or imported — each in its own store, apart from
+production. An analysis run on them is measured against the labels and never raises an alert.
 
 ## Enrichments
 
 Enrichments are not collected by hand: they read more about records — a website's content, a domain's registration —
-only when an analysis needs it. **Data › Online › Enrichments** shows what each one reads; **Read again** refreshes what it has
+only when an analysis needs it. **Connections** shows what each enrichment reads; **Read again** refreshes what it has
 already read.

@@ -4,7 +4,7 @@
 openapi: 3.1.0
 info:
   title: Fraud Engineering Studio API
-  version: 1.0.0
+  version: 1.1.0
   summary: Read and act on alerts and cases from your own systems.
   description: |
     The integration contract of the Fraud Engineering Studio: the routes your case-management system, SIEM or data
@@ -13,6 +13,13 @@ info:
 
     **Status.** This is the contract the Studio implements today. This version has **no authentication**: run the
     Studio inside your own network, behind your access controls. API keys come in a later version.
+
+    **Organisations.** One Studio can serve several organisations, each with its own data, calibrations and lists.
+    Every request acts for one: send the header `X-Studio-Org: <organisation id>` (see `GET /api/organisations`).
+    Without it, the request acts for the platform's own organisation.
+
+    **Sites are named by their link.** A website (`ExternalDomain`) is shown and returned with the link it was found
+    with, its path kept (`entity.label`, `url`) — never the bare domain alone.
 
     All bodies are JSON (`Content-Type: application/json`). Errors return `{"error": "<message>"}` with
     `400` (invalid request), `404` (not found) or `500` (server error).
@@ -34,6 +41,20 @@ tags:
     description: What a detection raised, one per unit (a page, a domain, an account...) and per run.
   - name: Cases
     description: An investigation of one subject. Opened when an alert is escalated, or by hand.
+  - name: Threat Monitoring
+    description: The use cases that watch for fraud — online scams, fraudulent webshops, payments to reported mules — and what they found.
+  - name: Threat Intelligence
+    description: Cases, scenarios and signals shared between organisations. No customer data is shared.
+  - name: Replies
+    description: Answers to the people who reported a site, through the source that collected their report.
+  - name: Pentesting
+    description: A fraudster's behaviour played on the institution's own application in staging, and what its defences did.
+  - name: Coverage
+    description: What each scenario is — calibrated, tested, pentested, in service — and since when.
+  - name: Organisations
+    description: The organisations one Studio serves; every request acts for one.
+  - name: Data
+    description: Production and the labelled test datasets.
   - name: Exports
     description: Alerts and cases as files, for a data platform or a report.
   - name: Collection
@@ -67,9 +88,9 @@ paths:
                 items:
                   type: object
                   properties:
-                    slug: { type: string, example: brand-impersonation-online }
+                    slug: { type: string, example: credential-phishing }
                     name: { type: string, example: Brand Impersonation -- Online }
-                    scenarios: { type: array, items: { type: string }, example: [FSL-BIP-001, FSL-BID-001] }
+                    scenarios: { type: array, items: { type: string }, example: [FSL-CRP-001, FSL-CRP-002] }
                     ready: { type: boolean, description: "Whether it can run (at least one calibrated scenario)." }
 
   /api/scenarios:
@@ -89,7 +110,7 @@ paths:
           application/json:
             schema: { $ref: "#/components/schemas/ScenarioNew" }
             example:
-              typology: brand-impersonation-online
+              typology: credential-phishing
               unit: UNIT-WEB-SITE
               title: A look-alike website that asks for its visitors' secrets
               steps:
@@ -112,7 +133,7 @@ paths:
         required: true
         content: { application/json: { schema: { $ref: "#/components/schemas/Note" }, example: { note: "Replaced by FSL-BID-004." } } }
       responses:
-        "200": { description: The scenario, retired., content: { application/json: { schema: { type: object } } } }
+        "200": { description: "The scenario, retired.", content: { application/json: { schema: { type: object } } } }
         "400": { $ref: "#/components/responses/Invalid" }
 
   /api/scenarios/{scenario_id}:
@@ -140,7 +161,7 @@ paths:
           application/json:
             schema: { oneOf: [{ $ref: "#/components/schemas/ScenarioUpdate" }, { $ref: "#/components/schemas/TriageUpdate" }] }
       responses:
-        "200": { description: The scenario or the triage, new version., content: { application/json: { schema: { type: object } } } }
+        "200": { description: "The scenario or the triage, new version.", content: { application/json: { schema: { type: object } } } }
         "400": { $ref: "#/components/responses/Invalid" }
 
   /api/detections/{scenario_id}:
@@ -187,7 +208,7 @@ paths:
         (the graph) and one SQL script per scenario (`sql/<id>.sql`, the engine's steps over the canonical tables). With
         `calibration=1`, this Studio's calibration is included and its values are written into the scripts.
       parameters:
-        - { name: typology, in: path, required: true, schema: { type: string }, example: brand-impersonation-online }
+        - { name: typology, in: path, required: true, schema: { type: string }, example: credential-phishing }
         - { name: scenarios, in: query, description: "Only these scenarios, comma-separated (all when absent).", schema: { type: string } }
         - { name: calibration, in: query, schema: { type: integer, enum: [0, 1], default: 0 } }
       responses:
@@ -261,7 +282,7 @@ paths:
       operationId: listSources
       summary: List sources
       responses:
-        "200": { description: The sources and enrichments, what each holds and its last collections., content: { application/json: { schema: { type: object } } } }
+        "200": { description: "The sources and enrichments, what each holds and its last collections.", content: { application/json: { schema: { type: object } } } }
     post:
       tags: [Sources]
       operationId: saveSource
@@ -322,7 +343,7 @@ paths:
         content:
           application/json:
             schema: { type: object, required: [name, typology], properties: { name: { type: string }, typology: { type: string } } }
-            example: { name: Brand watch — weekly, typology: brand-impersonation-online }
+            example: { name: Brand watch — weekly, typology: credential-phishing }
       responses:
         "200": { description: The analysis., content: { application/json: { schema: { type: object } } } }
         "400": { $ref: "#/components/responses/Invalid" }
@@ -334,7 +355,7 @@ paths:
       operationId: getAnalysis
       summary: Get an analysis
       responses:
-        "200": { description: The analysis, its scenarios and its runs., content: { application/json: { schema: { type: object } } } }
+        "200": { description: "The analysis, its scenarios and its runs.", content: { application/json: { schema: { type: object } } } }
         "404": { $ref: "#/components/responses/NotFound" }
     post:
       tags: [Analyses]
@@ -373,12 +394,32 @@ paths:
       operationId: listAlerts
       summary: List alerts
       parameters:
-        - { name: typology, in: query, description: "Typology ids, comma-separated.", schema: { type: string }, example: brand-impersonation-online }
+        - { name: typology, in: query, description: "Typology ids, comma-separated.", schema: { type: string }, example: credential-phishing }
         - { name: status, in: query, description: "Statuses, comma-separated.", schema: { type: string, enum: [new, closed, escalated] }, example: new }
       responses:
         "200":
           description: The alerts, the most recent first.
           content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Alert" } } } }
+    post:
+      tags: [Alerts]
+      operationId: raiseAlert
+      summary: Raise an alert by hand
+      description: An alert on any record, when no scenario retained it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entity, id, typology]
+              properties:
+                entity: { type: string, example: ExternalDomain }
+                id: { type: string, example: secure-login-example.com }
+                typology: { type: string, example: credential-phishing }
+                note: { type: string }
+      responses:
+        "200": { description: The alert., content: { application/json: { schema: { $ref: "#/components/schemas/Alert" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
 
   /api/alerts/{alert_id}:
     parameters: [{ $ref: "#/components/parameters/alert_id" }]
@@ -387,7 +428,7 @@ paths:
       operationId: getAlert
       summary: Get an alert
       responses:
-        "200": { description: The alert, with what its scenarios found., content: { application/json: { schema: { $ref: "#/components/schemas/Alert" } } } }
+        "200": { description: "The alert, with what its scenarios found.", content: { application/json: { schema: { $ref: "#/components/schemas/Alert" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
     post:
       tags: [Alerts]
@@ -432,7 +473,7 @@ paths:
         content:
           application/json:
             schema: { $ref: "#/components/schemas/CaseOpen" }
-            example: { entity: ExternalDomain, id: secure-login-example.com, typology: brand-impersonation-online, from_case: C-20261013-1a2b3c }
+            example: { entity: ExternalDomain, id: secure-login-example.com, typology: credential-phishing, from_case: C-20261013-1a2b3c }
       responses:
         "200": { description: The case., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
         "400": { $ref: "#/components/responses/Invalid" }
@@ -444,7 +485,7 @@ paths:
       operationId: getCase
       summary: Get a case
       responses:
-        "200": { description: The case, its alerts, notes, history and related cases., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "200": { description: "The case, its alerts, notes, history and related cases.", content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
         "404": { $ref: "#/components/responses/NotFound" }
     post:
       tags: [Cases]
@@ -460,7 +501,7 @@ paths:
             schema: { $ref: "#/components/schemas/CaseAction" }
             examples:
               note: { value: { action: note, note: "Hosting provider notified." } }
-              close: { value: { action: close, typology: brand-impersonation-online, disposition: impersonation, note: "Site taken down." } }
+              close: { value: { action: close, typology: credential-phishing, disposition: impersonation, note: "Site taken down." } }
       responses:
         "200": { description: The case after the action., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
         "400": { $ref: "#/components/responses/Invalid" }
@@ -495,7 +536,7 @@ paths:
                 sent: { type: string, format: date, description: "Default: today." }
                 note: { type: string }
       responses:
-        "200": { description: The case, with its reports., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "200": { description: "The case, with its reports.", content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
         "400": { description: Missing or wrong field. }
   /api/cases/{case_id}/reports/{report_id}:
     parameters: [{ $ref: "#/components/parameters/case_id" }, { name: report_id, in: path, required: true, schema: { type: string } }]
@@ -514,8 +555,8 @@ paths:
                 note: { type: string }
                 action: { type: string, enum: [withdraw], description: "A report recorded by mistake: no longer shown, never erased." }
       responses:
-        "200": { description: The case, with its reports., content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
-        "400": { description: No such report, or a wrong status. }
+        "200": { description: "The case, with its reports.", content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "400": { description: "No such report, or a wrong status." }
   /api/reports:
     get:
       tags: [Exports]
@@ -612,8 +653,346 @@ paths:
       summary: Follow a run
       parameters: [{ name: run_id, in: path, required: true, schema: { type: string } }]
       responses:
-        "200": { description: The run, its progress and counts., content: { application/json: { schema: { type: object } } } }
+        "200": { description: "The run, its progress and counts.", content: { application/json: { schema: { type: object } } } }
         "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/runs/{run_id}/detections:
+    get:
+      tags: [Analyses]
+      operationId: listRunDetections
+      summary: List what a run found
+      description: |
+        One row per unit found, with its priority, whether it is already in Alerts, and the priority it had in the
+        previous run of the same analysis. A site is named by the link it was found with (`entity.label`, `url`).
+      parameters: [{ name: run_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200":
+          description: The detections of the run.
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Detection" } } } }
+
+  /api/runs/{run_id}/send:
+    post:
+      tags: [Analyses]
+      operationId: sendRunToAlerts
+      summary: Send findings to Alerts
+      description: |
+        Raises one alert per unit for the detections of the chosen scenarios and paths — all of them when `selection`
+        is left out. Each alert takes its finding's priority. Not allowed on a test dataset: a run there is measured,
+        its findings never become alerts.
+      parameters: [{ name: run_id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                selection: { type: array, description: "[scenario, path] pairs; path is rules or ai.", items: { type: array, items: { type: string } }, example: [[FSL-CRP-002, ai]] }
+                units: { type: array, description: Only these units., items: { type: string } }
+      responses:
+        "200": { description: The alerts raised or refreshed., content: { application/json: { schema: { type: object } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/datasets:
+    get:
+      tags: [Data]
+      operationId: listDatasets
+      summary: List datasets
+      description: |
+        Production and the test datasets — synthetic or imported, with labels. Send the header `X-Studio-Dataset` with
+        a test dataset's id on the analysis routes to run on it: its runs are measured against the labels and never
+        raise alerts.
+      responses:
+        "200": { description: The datasets., content: { application/json: { schema: { type: array, items: { type: object } } } } }
+
+  /api/organisations:
+    get:
+      tags: [Organisations]
+      operationId: listOrganisations
+      summary: List organisations
+      description: |
+        The organisations this platform serves, and the one the request acts for. Every other route reads and writes
+        the data of that organisation only: set it with the header `X-Studio-Org` (or the cookie `studio_org` the
+        page sets). Without either, the request acts for the platform's own organisation.
+      responses:
+        "200":
+          description: The organisations and the current one.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current: { type: string, example: bank-1 }
+                  pinned: { type: boolean, description: "The Studio is locked on one organisation: only that one is listed." }
+                  organisations: { type: array, items: { $ref: "#/components/schemas/Organisation" } }
+
+  /api/exchange:
+    post:
+      tags: [Threat Intelligence]
+      operationId: share
+      summary: Share a case, a scenario or signals
+      description: |
+        `case`: the case share of a confirmed fraud (no customer data), with the signal it names and the scenarios
+        that found it. `scenario`: a scenario as written, never its calibration. `signals`: identifiers to watch.
+        One item per recipient; nothing is written in a recipient's data until it accepts.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ShareRequest" }
+            examples:
+              case: { value: { kind: case, ref: C-20261117-4d5e6f, to: [bank-1], note: "Mule account, investment scam." } }
+              scenario: { value: { kind: scenario, ref: FSL-ATO-013, to: [bank-1] } }
+              signals: { value: { kind: signals, signals: [{ kind: account, value: "02-02-02|20000507", since: "2022-12-10" }], to: [bank-1, bank-3] } }
+      responses:
+        "200":
+          description: Sent.
+          content: { application/json: { schema: { type: object, properties: { batch: { type: string }, to: { type: array, items: { type: string } } } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/exchange/{key}:
+    get:
+      tags: [Threat Intelligence]
+      operationId: readExchange
+      summary: Read what was shared
+      description: |
+        `peers`: the organisations this one can share with. `inbox`: what it received. `outbox`: what it sent.
+        `counts`: how many items are new, received and sent. Received items carry what was shared only — never the
+        receiver's own data.
+      parameters:
+        - { name: key, in: path, required: true, description: "peers, inbox, outbox or counts.", schema: { type: string, enum: [peers, inbox, outbox, counts] } }
+      responses:
+        "200":
+          description: The list asked for (an object for counts).
+          content: { application/json: { schema: { oneOf: [{ type: array, items: { $ref: "#/components/schemas/SharedItem" } }, { type: object }] } } }
+    post:
+      tags: [Threat Intelligence]
+      operationId: acceptShared
+      summary: Act on what was received
+      description: |
+        `watch`: its signals become entries of the watchlist of their kind (an account goes to **Mule accounts**),
+        listed from the date the sender detected them. `activate`: its scenarios are switched on here and run with this
+        organisation's own calibration. `dismiss`: nothing is kept.
+      parameters: [{ name: key, in: path, required: true, description: "The id of the item received.", schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [watch, activate, dismiss] }
+                scenarios: { type: array, items: { type: string }, description: "With activate: only these (default: all it carries)." }
+      responses:
+        "200":
+          description: The item's new status and what it did.
+          content: { application/json: { schema: { type: object, properties: { id: { type: string }, status: { type: string, enum: [accepted, dismissed] }, outcome: { type: object } } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/scam/triage:
+    get:
+      tags: [Threat Monitoring]
+      operationId: listFindings
+      summary: List findings
+      description: |
+        Every finding of the Threat Monitoring use cases: what the last run of each found, with its priority and where
+        it stands — to triage, triaged, new or escalated (it has an alert or a case), closed, watch (online, retained by
+        no scenario). A finding closed and then found again by a later run comes back. A site is named by the link
+        it was found with.
+      responses:
+        "200":
+          description: The findings, per use case.
+          content: { application/json: { schema: { type: object, properties: { rows: { type: array, items: { $ref: "#/components/schemas/Finding" } }, groups: { type: array, items: { type: object } }, running: { type: [object, "null"] } } } } }
+    post:
+      tags: [Threat Monitoring]
+      operationId: runMonitoring
+      summary: Run a use case
+      description: Collects its sources, runs its typologies and triages what they found, in the background.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                group: { type: string, description: "The use case (default: the first).", example: online-scams }
+                step: { type: string, enum: [all, run, triage], default: all }
+      responses:
+        "200": { description: The pass started., content: { application/json: { schema: { type: object, properties: { id: { type: string } } } } } }
+
+  /api/scam/triage/runs:
+    get:
+      tags: [Threat Monitoring]
+      operationId: listMonitoringRuns
+      summary: What the last pass ran
+      parameters: [{ name: group, in: query, schema: { type: string }, example: online-scams }]
+      responses:
+        "200": { description: "Per typology, its run and its scenarios.", content: { application/json: { schema: { type: object } } } }
+
+  /api/records/{entity}/{record_id}/reporters:
+    get:
+      tags: [Replies]
+      operationId: listReporters
+      summary: Who waits for an answer
+      description: |
+        Per source that takes answers (a public check site, for example): the people who reported this record and are
+        still waiting, by language, and the outcomes the source accepts.
+      parameters:
+        - { name: entity, in: path, required: true, schema: { type: string }, example: ExternalDomain }
+        - { name: record_id, in: path, required: true, schema: { type: string } }
+      responses:
+        "200":
+          description: The reporters and the record's open case, if any.
+          content: { application/json: { schema: { type: object, properties: { reporters: { type: array, items: { $ref: "#/components/schemas/Reporters" } }, case_id: { type: [string, "null"] } } } } }
+
+  /api/records/{entity}/{record_id}/replies:
+    post:
+      tags: [Replies]
+      operationId: replyFromRecord
+      summary: Answer the reporters of a record
+      description: |
+        One answer to every person waiting from that source in that language — no alert or case needed. When the
+        record has an open case, the answer is also kept on the case as a report to the reporter.
+      parameters:
+        - { name: entity, in: path, required: true, schema: { type: string } }
+        - { name: record_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/Reply" } } }
+      responses:
+        "200": { description: How many were answered., content: { application/json: { schema: { type: object, properties: { reply_result: { $ref: "#/components/schemas/ReplyResult" }, case_id: { type: [string, "null"] } } } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/records/{entity}/{record_id}/replies/draft:
+    post:
+      tags: [Replies]
+      operationId: draftReplyFromRecord
+      summary: Draft the answer with AI
+      description: A draft from the record and the source's instructions, to review before sending. Nothing is sent.
+      parameters:
+        - { name: entity, in: path, required: true, schema: { type: string } }
+        - { name: record_id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [source], properties: { source: { type: string }, lang: { type: string, example: fr } } } } }
+      responses:
+        "200": { description: The draft., content: { application/json: { schema: { $ref: "#/components/schemas/Reply" } } } }
+
+  /api/cases/{case_id}/replies:
+    parameters: [{ $ref: "#/components/parameters/case_id" }]
+    post:
+      tags: [Replies]
+      operationId: replyFromCase
+      summary: Answer the reporters of a case
+      description: The same as from a record; the answer is kept on the case as a report to the reporter.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/Reply" } } }
+      responses:
+        "200": { description: "The case, with `reply_result`.", content: { application/json: { schema: { $ref: "#/components/schemas/Case" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/cases/{case_id}/replies/draft:
+    parameters: [{ $ref: "#/components/parameters/case_id" }]
+    post:
+      tags: [Replies]
+      operationId: draftReplyFromCase
+      summary: Draft a case's answer with AI
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [source], properties: { source: { type: string }, lang: { type: string } } } } }
+      responses:
+        "200": { description: The draft., content: { application/json: { schema: { $ref: "#/components/schemas/Reply" } } } }
+
+  /api/coverage:
+    get:
+      tags: [Coverage]
+      operationId: getCoverage
+      summary: Coverage facts
+      description: |
+        Per scenario: where it was tested (synthetic datasets, labelled data), pentested, declared in service on
+        another engine, exported — and since when each fact holds.
+      responses:
+        "200": { description: The facts., content: { application/json: { schema: { type: object, properties: { tested: { type: object }, pentested: { type: object }, external: { type: object }, exports: { type: object }, since: { type: object } } } } } }
+
+  /api/activity:
+    get:
+      tags: [Coverage]
+      operationId: getActivity
+      summary: Engineering activity
+      description: Calibrations, library changes, deployments declared or withdrawn, exports and runs over the last days.
+      parameters: [{ name: days, in: query, schema: { type: integer, default: 30 } }]
+      responses:
+        "200": { description: The activity., content: { application/json: { schema: { type: object } } } }
+
+  /api/deployments:
+    post:
+      tags: [Coverage]
+      operationId: declareDeployment
+      summary: Declare a scenario in service elsewhere
+      description: A scenario that runs on the institution's own engine, so that Coverage and Pentesting count it.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [scenario, engine], properties: { scenario: { type: string }, engine: { type: string }, since: { type: string, format: date } } } } }
+      responses:
+        "200": { description: Declared., content: { application/json: { schema: { type: object } } } }
+
+  /api/deployments/withdraw:
+    post:
+      tags: [Coverage]
+      operationId: withdrawDeployment
+      summary: Withdraw a declared scenario
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [scenario, engine], properties: { scenario: { type: string }, engine: { type: string } } } } }
+      responses:
+        "200": { description: Withdrawn., content: { application/json: { schema: { type: object } } } }
+
+  /api/pentest:
+    get:
+      tags: [Pentesting]
+      operationId: getPentest
+      summary: Targets, journeys, cases and runs
+      description: |
+        Fraud Pentesting plays a fraudster's behaviour on the institution's own application in staging — with its
+        written authorisation — and records what its defences did at each step.
+      parameters: [{ name: target, in: query, schema: { type: string } }]
+      responses:
+        "200": { description: The pentesting state of a target., content: { application/json: { schema: { type: object } } } }
+
+  /api/pentest/runs/{pentest_run_id}:
+    get:
+      tags: [Pentesting]
+      operationId: getPentestRun
+      summary: A pentest run
+      description: "Each action with its screenshot, and the verdict step by step: blocked, friction, allowed or not reached."
+      parameters: [{ name: pentest_run_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: The run., content: { application/json: { schema: { type: object } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/pentest/{step}:
+    post:
+      tags: [Pentesting]
+      operationId: startPentestStep
+      summary: Discover, plan or run
+      description: |
+        `discover`: a browser follows the target's pages and groups them into journeys. `plan`: malicious cases drawn
+        from the library for those journeys (mode `gaps`: any scenario the site can play; `deployed`: only the scenarios
+        declared in service). `run`: one case played in a browser. Each starts a background job.
+      parameters: [{ name: step, in: path, required: true, schema: { type: string, enum: [discover, plan, run] } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target: { type: string, description: With discover and plan. }
+                mode: { type: string, enum: [gaps, deployed], default: gaps, description: With plan. }
+                case: { type: string, description: With run. }
+      responses:
+        "200": { description: The job started., content: { application/json: { schema: { type: object, properties: { job: { type: string } } } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
 
 components:
   parameters:
@@ -690,14 +1069,15 @@ components:
       properties:
         type: { type: string, example: ExternalDomain }
         id: { type: string, example: secure-login-example.com }
-        label: { type: string }
+        label: { type: string, description: "How it is shown. A site: the link it was found with, its path kept.", example: "https://secure-login-example.com/verify" }
     Alert:
       type: object
       properties:
         alert_id: { type: string }
-        typology: { type: string, example: brand-impersonation-online }
+        typology: { type: string, example: credential-phishing }
         scenarios: { type: array, items: { type: string }, example: [FSL-BID-001] }
         entity: { $ref: "#/components/schemas/Entity" }
+        url: { type: [string, "null"], description: "A site: the link it was found with." }
         title: { type: string }
         raised: { type: string, description: "When it was raised (UTC)." }
         status: { type: string, enum: [new, closed, escalated] }
@@ -763,3 +1143,96 @@ components:
         status: { type: string, description: "ok | error | stopped, once finished." }
         error: { type: [string, "null"] }
         counts: { type: [object, "null"], description: "What was written, per entity." }
+    Detection:
+      type: object
+      properties:
+        unit_id: { type: string }
+        entity: { $ref: "#/components/schemas/Entity" }
+        url: { type: [string, "null"], description: "A site: the link it was found with." }
+        title: { type: string }
+        date: { type: [string, "null"] }
+        hits: { type: array, description: "[scenario, path] that found it.", items: { type: array, items: { type: string } } }
+        priority: { type: [string, "null"], enum: [critical, high, medium, low, null] }
+        prev_priority: { type: [string, "null"], description: Its priority in the previous run of the analysis. }
+        new: { type: boolean, description: Not found by the previous run. }
+        up: { type: boolean, description: Its priority rose. }
+        sent: { type: boolean, description: Already in Alerts. }
+    Finding:
+      type: object
+      properties:
+        id: { type: string, example: "ExternalDomain|secure-login-example.com" }
+        group: { type: string, description: "The use case., example: online-scams" }
+        entity: { $ref: "#/components/schemas/Entity" }
+        url: { type: [string, "null"], description: "The link it was found with." }
+        state: { type: string, enum: [to_triage, triaged, new, escalated, closed, watch, blocked, unmatched] }
+        priority: { type: [string, "null"], enum: [critical, high, medium, low, null] }
+        typologies: { type: array, items: { type: string } }
+        scenarios: { type: array, items: { type: string } }
+        alerts: { type: array, items: { type: string } }
+        cases: { type: array, items: { type: string } }
+        brands: { type: array, items: { type: string } }
+        sources: { type: array, items: { type: string } }
+        first_seen: { type: [string, "null"] }
+        last_seen: { type: [string, "null"] }
+        waiting: { type: integer, description: People who reported it and wait for an answer. }
+    Organisation:
+      type: object
+      properties:
+        id: { type: string, example: bank-1 }
+        name: { type: string, example: Organisation 1 }
+        description: { type: [string, "null"] }
+    ShareRequest:
+      type: object
+      required: [kind, to]
+      properties:
+        kind: { type: string, enum: [case, scenario, signals] }
+        ref: { type: string, description: "With case: the case id. With scenario: the scenario id." }
+        signals:
+          type: array
+          description: With signals.
+          items: { type: object, required: [value], properties: { kind: { type: string, default: account }, value: { type: string }, label: { type: string }, since: { type: string, format: date, description: When the sender detected it. } } }
+        to: { type: array, items: { type: string }, description: The organisations that receive it. }
+        title: { type: string }
+        note: { type: string }
+    SharedItem:
+      type: object
+      properties:
+        id: { type: string }
+        batch: { type: string, description: One send to several organisations. }
+        kind: { type: string, enum: [case, scenario, signals] }
+        from: { $ref: "#/components/schemas/Organisation" }
+        to: { $ref: "#/components/schemas/Organisation" }
+        relation: { type: string, enum: [service, peer], description: "service: from the platform's threat-intelligence service." }
+        title: { type: string }
+        note: { type: [string, "null"] }
+        payload: { type: object, description: "case_share, signals, scenarios — what was shared, nothing of the receiver's data." }
+        status: { type: string, enum: [new, accepted, dismissed] }
+        outcome: { type: [object, "null"], description: "What accepting did: watchlisted, activated." }
+        sent_at: { type: string }
+        handled_at: { type: [string, "null"] }
+    Reporters:
+      type: object
+      properties:
+        source: { type: string }
+        name: { type: string }
+        waiting: { type: array, items: { type: object }, description: The reports still waiting for an answer. }
+        answered: { type: integer }
+        langs: { type: object, description: "Language → how many wait.", additionalProperties: { type: integer } }
+        outcomes: { type: object, description: "The outcomes the source accepts: id → label.", additionalProperties: { type: string } }
+        observations_required: { type: array, items: { type: string }, description: The outcomes that must say what was observed. }
+        can_draft: { type: boolean, description: The source gives instructions for an AI draft. }
+    Reply:
+      type: object
+      required: [source, outcome, summary]
+      properties:
+        source: { type: string }
+        lang: { type: string, description: "Only the reporters in this language (default: all).", example: fr }
+        outcome: { type: string, description: One of the source's outcomes. }
+        summary: { type: string }
+        observations: { type: array, items: { type: object, required: [title], properties: { title: { type: string }, detail: { type: string } } } }
+        advice: { type: array, items: { type: string } }
+    ReplyResult:
+      type: object
+      properties:
+        sent: { type: integer }
+        failed: { type: array, items: { type: string } }
