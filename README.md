@@ -18,7 +18,6 @@ npm run build        # the static site in build/
 | `docs/guides/` | Step-by-step guides |
 | `docs/integration/` | The integration contract |
 | `openapi/openapi.yaml` | The Studio's API contract — a copy of `studio/openapi.yaml` |
-| `src/pages/whats-new.md` | What's new |
 
 The API reference (`docs/api/`) is generated from `openapi/openapi.yaml` at build time; it is not committed.
 

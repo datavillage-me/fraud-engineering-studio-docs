@@ -67,7 +67,6 @@ const config = {
           { type: "docSidebar", sidebarId: "docs", position: "left", label: "Documentation" },
           { type: "docSidebar", sidebarId: "guides", position: "left", label: "Guides" },
           { type: "docSidebar", sidebarId: "api", position: "left", label: "API" },
-          { to: "/whats-new", label: "What's new", position: "right" },
         ],
       },
       footer: {
