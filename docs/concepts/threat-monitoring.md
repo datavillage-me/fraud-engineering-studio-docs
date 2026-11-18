@@ -37,6 +37,8 @@ Each organisation chooses its use cases. Each use case has four pages: **Dashboa
 A finding that already has an alert is no longer listed under Findings: it is in **Alerts**. An alert closed, then
 found again by a later run — a site taken down and back online — returns to **Findings**.
 
+![Threat Monitoring › APP scam receiving accounts › Findings](/img/screens/findings.png)
+
 ## A site is named by its link
 
 A website is always shown with the link it was found with, its path kept — `https://example-site.com/pay`, not

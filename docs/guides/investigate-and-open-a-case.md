@@ -54,6 +54,8 @@ A case moves through four steps, shown at the top of its panel:
    made.
 4. **Confirm** — the case closes with its decision. Its effects apply to the next runs.
 
+![A case closed as confirmed fraud: its decision and its qualification in the fraud taxonomy](/img/screens/case.png)
+
 ## Share it
 
 A confirmed and qualified fraud can be passed on to other organisations: **Share case**, choose who receives it, add a

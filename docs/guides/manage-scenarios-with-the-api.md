@@ -25,7 +25,7 @@ Give the typology, the unit, the title and the steps. Each step names an existin
 sets is written `<name>` in the step. A *Given* is a fact about the record itself, never how it was found.
 
 ```bash
-curl -s -X POST http://localhost:8770/api/scenarios -H "Content-Type: application/json" -d '{
+curl -s -X POST https://studio.example-bank.com/api/scenarios -H "Content-Type: application/json" -d '{
   "typology": "brand-impersonation-online",
   "unit": "UNIT-FIP-SITE",
   "title": "A look-alike website that asks for its visitors'\'' secrets",
@@ -52,7 +52,7 @@ Send the whole scenario as it should be: its title, its steps and, if it has AI 
 update makes a new version and needs a note.
 
 ```bash
-curl -s -X POST http://localhost:8770/api/scenarios/FSL-BID-004 -H "Content-Type: application/json" \
+curl -s -X POST https://studio.example-bank.com/api/scenarios/FSL-BID-004 -H "Content-Type: application/json" \
   -d '{"title": "...", "steps": [ ... ], "note": "Only live sites."}'
 ```
 
@@ -63,7 +63,7 @@ A triage is updated the same way, with its rules in order: `POST /api/scenarios/
 A scenario runs only once calibrated. Set its parameters and save a new calibration version:
 
 ```bash
-curl -s -X POST http://localhost:8770/api/detections/FSL-BID-004 -H "Content-Type: application/json" \
+curl -s -X POST https://studio.example-bank.com/api/detections/FSL-BID-004 -H "Content-Type: application/json" \
   -d '{"rules": {"max_followers": 500}, "note": "Small pages only."}'
 ```
 
@@ -73,6 +73,6 @@ A scenario is never deleted: its runs and alerts must stay explainable. Retiring
 everything else.
 
 ```bash
-curl -s -X POST http://localhost:8770/api/scenarios/FSL-BID-004/retire -H "Content-Type: application/json" \
+curl -s -X POST https://studio.example-bank.com/api/scenarios/FSL-BID-004/retire -H "Content-Type: application/json" \
   -d '{"note": "Replaced by FSL-BID-005."}'
 ```

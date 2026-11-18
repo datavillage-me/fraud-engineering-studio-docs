@@ -29,8 +29,8 @@ calibrate — and those that already use it but need more, grouped by what is mi
 
 ## Test datasets
 
-**Connections** also holds the labelled test datasets — synthetic or imported — each in its own store, apart from
-production. An analysis run on them is measured against the labels and never raises an alert.
+**Detection Engineering › Test data** holds the labelled test datasets — synthetic or imported — each in its own
+store, apart from the online data. An analysis run on them is measured against the labels and never raises an alert.
 
 ## Enrichments
 

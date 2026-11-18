@@ -24,8 +24,10 @@ info:
     All bodies are JSON (`Content-Type: application/json`). Errors return `{"error": "<message>"}` with
     `400` (invalid request), `404` (not found) or `500` (server error).
 servers:
-  - url: http://localhost:8770
-    description: A Studio running locally
+  - url: "https://{host}"
+    description: Your Studio, where your organisation runs it.
+    variables:
+      host: { default: studio.example-bank.com, description: "The address of your Studio." }
 tags:
   - name: Knowledge
     description: The typologies and their scenarios, as written, calibrated and exported.

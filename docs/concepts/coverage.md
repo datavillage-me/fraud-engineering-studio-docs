@@ -25,6 +25,8 @@ coverage moves.
 
 ## What the report shows
 
+![Overview › Coverage: the facts per stage of the fraud journey, the latest pentests and the last 12 weeks](/img/screens/coverage.png)
+
 - **Where the defences sit** — each fact by stage of the fraud journey, as a heat map.
 - **Whether they hold** — the latest pentest of each scenario, by stage: blocked, friction, allowed.
 - **Whether it moves** — each fact over the last 12 weeks.

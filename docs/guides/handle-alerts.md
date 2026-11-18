@@ -12,6 +12,8 @@ The list shows the **new** alerts, ordered by the triage's priority. The status 
 **escalated** ones. An alert shows what it is about — a site with the link it was found with — the scenarios that found
 it with the conditions they checked, and the triage's proposal.
 
+![An alert: why it was raised, and the decision — investigate it, or close it with a reason](/img/screens/alert.png)
+
 1. Open an alert.
 2. Check the triage's proposed decision, if any, against what you see. **Site ↗** opens the site at the link found.
 3. Choose:

@@ -43,7 +43,7 @@ same.
 
 ## Conventions
 
-- **Base URL** — where the Studio runs, for example `http://localhost:8770`.
+- **Base URL** — the address of your Studio, for example `https://studio.example-bank.com`.
 - **Organisation** — the header `X-Studio-Org` says which organisation a call acts for. Without it, the platform's own.
 - **Sites** — a website is returned with the link it was found with, its path kept: `entity.label` and `url`.
 - **Bodies** — JSON, `Content-Type: application/json`.
@@ -57,7 +57,7 @@ same.
 ### Pull new alerts
 
 ```bash
-curl -s "http://localhost:8770/api/alerts?status=new&typology=brand-impersonation-online"
+curl -s "https://studio.example-bank.com/api/alerts?status=new&typology=brand-impersonation-online"
 ```
 
 ```json
@@ -77,7 +77,7 @@ curl -s "http://localhost:8770/api/alerts?status=new&typology=brand-impersonatio
 ### Escalate an alert
 
 ```bash
-curl -s -X POST "http://localhost:8770/api/alerts/A-3f9c2a71b04e" \
+curl -s -X POST "https://studio.example-bank.com/api/alerts/A-3f9c2a71b04e" \
   -H "Content-Type: application/json" \
   -d '{"action": "escalate", "note": "Confirmed by the fraud desk."}'
 ```
@@ -87,7 +87,7 @@ The alert joins the open case of its subject, or a new one. Its `case_id` says w
 ### Close a case
 
 ```bash
-curl -s -X POST "http://localhost:8770/api/cases/C-20261025-4d5e6f" \
+curl -s -X POST "https://studio.example-bank.com/api/cases/C-20261025-4d5e6f" \
   -H "Content-Type: application/json" \
   -d '{"action": "close", "typology": "brand-impersonation-online", "disposition": "impersonation", "note": "Page taken down by the platform."}'
 ```
@@ -97,7 +97,7 @@ A case closed as confirmed fraud must be qualified first (`"action": "qualify"`)
 ### Export a typology
 
 ```bash
-curl -s -o typology.zip "http://localhost:8770/api/ofef-export/brand-impersonation-online?calibration=1"
+curl -s -o typology.zip "https://studio.example-bank.com/api/ofef-export/brand-impersonation-online?calibration=1"
 ```
 
 The zip is an execution package: the scenarios in Gherkin, their indicators, features and AI questions — only those the
@@ -108,7 +108,7 @@ scenarios need — the **context builder** of each unit and each scenario as SQL
 ### Export for a data platform
 
 ```bash
-curl -s -o alerts.parquet "http://localhost:8770/api/export/alerts?format=parquet&status=closed,escalated"
+curl -s -o alerts.parquet "https://studio.example-bank.com/api/export/alerts?format=parquet&status=closed,escalated"
 ```
 
 ## The contract itself

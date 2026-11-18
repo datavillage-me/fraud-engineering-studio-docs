@@ -29,12 +29,12 @@ a fraud engineer and an auditor read the same thing.
 | Menu | What you do there |
 |---|---|
 | **Overview** | **Coverage**: what each scenario and fraud type has reached. **Activity**: what changed lately. |
-| **Detection Engineering** | Choose and calibrate scenarios, test them on labelled data. See [Calibrate a scenario](guides/calibrate-a-scenario). |
+| **Detection Engineering** | Choose and calibrate scenarios, test them on labelled data (**Test data**). See [Calibrate a scenario](guides/calibrate-a-scenario). |
 | **Threat Monitoring** | The use cases that watch for fraud — online scams, fraudulent webshops, APP scam receiving accounts, payments to reported mules — each with its **Dashboard**, **Findings**, **Alerts** and **Cases**. See [Threat Monitoring](concepts/threat-monitoring). |
 | **Fraud Pentesting** | Play a fraudster's behaviour on your own application in staging, and see what your defences did. See [Fraud Pentesting](concepts/fraud-pentesting). |
 | **Threat Intelligence** | Share confirmed frauds, scenarios and signals with other organisations, and act on what you receive. See [Threat Intelligence](concepts/threat-intelligence). |
 | **Library** | The typologies, scenarios, indicators and taxonomies — read-only here; calibration happens in Detection Engineering. |
-| **Connections** | The sources, the lists and the test datasets. |
+| **Connections** | The sources and the lists. The labelled test datasets are under **Detection Engineering › Test data**. |
 
 The selector next to the Studio's name switches between [organisations](concepts/organisations): each one sees only
 its own data, calibrations, lists and cases.

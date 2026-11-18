@@ -16,6 +16,8 @@ See [Threat Intelligence](../concepts/threat-intelligence) for what is shared an
 2. Click **Share case**, tick the organisations under **Send to**, and add a note.
 3. Send. It appears under **Threat Intelligence › Sent**.
 
+![Share case: what the receivers get — the case share, never customer data — and who receives it](/img/screens/share.png)
+
 ## Share a scenario or signals
 
 1. Go to **Threat Intelligence › Sent** and click **Share a scenario or signals**.
@@ -26,6 +28,9 @@ See [Threat Intelligence](../concepts/threat-intelligence) for what is shared an
 
 1. Go to **Threat Intelligence › Received** and open an item. It shows what was shared: the case and its account, the
    scenario with its steps.
+
+![A scenario received from the threat-intelligence service, with the case-law mark next to its title](/img/screens/received.png)
+
 2. Choose:
    - **Watch this account** — the account joins **Mule accounts**. Then run **Threat Monitoring › Payments to
      reported mules**: any of your customers' payments to it after the sender detected it becomes a critical alert.

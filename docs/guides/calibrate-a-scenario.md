@@ -28,8 +28,11 @@ Only a calibrated scenario runs.
 ## Measure them
 
 1. Go to **Detection Engineering › Calibration** and open an analysis of the typology, or **+ New analysis**.
-2. Under **Run on**, choose a labelled test dataset, then click **Run analysis**.
+2. Under **Run on**, choose a dataset under **Synthetic data**, then click **Run analysis**. The test datasets are
+   listed under **Detection Engineering › Test data**.
 3. Read **Results**. One table, one row for all scenarios and one per scenario (Rules and AI apart when both run):
+
+![Results of a run on a labelled dataset: one row for all scenarios and one per scenario](/img/screens/results.png)
 
 | Column | Meaning |
 |---|---|

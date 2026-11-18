@@ -20,8 +20,8 @@ description: The words the Studio uses, one line each.
 | **List** | Names and identifiers the Studio checks against: your own brands and domains, trusted parties, a watchlist. |
 | **Analysis** | A typology with the scenarios you choose. In Detection Engineering it runs on labelled test data and is measured; in Threat Monitoring it runs on the data watched. Each run keeps its results. |
 | **Finding** | A case that met every condition of a scenario in a run. A site is shown with the link it was found with. |
-| **Test dataset** | Labelled data, kept apart — synthetic or imported — to measure analyses: recall, precision, false alarms. A run on it never raises an alert. |
-| **Production data** | The data the detections watch, collected by the sources. Runs on it can raise alerts. |
+| **Synthetic data** | Labelled test datasets, kept apart — generated or imported — to measure analyses: recall, precision, false alarms. A run on them never raises an alert. |
+| **Online data** | The data the detections watch, collected by the sources. Runs on it can raise alerts. |
 | **Alert** | A finding sent for review. One alert per unit, whatever the number of scenarios that found it. |
 | **Triage** | Rules that order alerts by priority (critical to low) and propose a decision, such as *homonym*, for the analyst to confirm. |
 | **Decision** | How an alert or a case is closed, with a reason the typology defines. A decision can have **effects**: exclude a record, add it to a list. |
