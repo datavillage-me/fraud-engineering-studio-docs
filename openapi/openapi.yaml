@@ -418,7 +418,8 @@ paths:
                 entity: { type: string, example: ExternalDomain }
                 id: { type: string, example: secure-login-example.com }
                 typology: { type: string, example: credential-phishing }
-                note: { type: string }
+                priority: { type: string, enum: [critical, high, medium, low], description: "The analyst's priority, set from the start; the triage's comes beside it with the next run." }
+                note: { type: string, description: Why it is raised. }
       responses:
         "200": { description: The alert., content: { application/json: { schema: { $ref: "#/components/schemas/Alert" } } } }
         "400": { $ref: "#/components/responses/Invalid" }
@@ -438,7 +439,9 @@ paths:
       summary: Decide on an alert
       description: |
         Close it with one of its typology's reasons, escalate it to the case of its subject (a new case if none is
-        open), or reopen it (the decision and its effects are undone).
+        open), or reopen it (the decision and its effects are undone). `set_priority` sets the analyst's priority, with a
+        note: it wins over the triage's, which later runs keep updating beside it (`triage.machine`); an empty priority
+        goes back to the triage's.
       requestBody:
         required: true
         content:
@@ -1098,9 +1101,10 @@ components:
       type: object
       required: [action]
       properties:
-        action: { type: string, enum: [close, escalate, reopen] }
+        action: { type: string, enum: [close, escalate, reopen, set_priority] }
         disposition: { type: string, description: "With close: one of the typology's reasons." }
-        note: { type: string }
+        priority: { type: string, enum: [critical, high, medium, low, ""], description: "With set_priority: the analyst's priority; empty goes back to the triage's." }
+        note: { type: string, description: "Required with set_priority, and with the reasons that ask for one." }
     Case:
       type: object
       properties:

@@ -29,7 +29,22 @@ To change a decision, open the alert and click **Reopen alert**. Its effects are
 A site closed because its host took it down, then found again online by a later run, comes back under **Findings**.
 :::
 
+## Change the priority
+
+The triage sets an alert's priority from what the detection saw. You may know more: a site aimed at your customers
+right now, a campaign you already follow.
+
+1. Open the alert and click its **Priority**.
+2. Choose a priority, give the reason — it is required — and **Save**.
+
+Your priority wins: the list is ordered by it. Under it the alert shows who set it and the triage's own value. The
+next runs keep updating the triage's value but never yours; if the triage puts the alert higher than you did, the alert
+says so (**The triage now says critical ↑**). **Reset to triage**, in the same menu, removes yours.
+
+Every change is kept with its note: if analysts keep raising the same alerts, the triage's rule is set too low.
+
 ## Raise an alert by hand
 
-From a finding no scenario retained — or any record — **Raise an alert** puts it in the queue with a typology and a
-note.
+From a finding no scenario retained, **Raise an alert** puts it in the queue. Who raises it classifies it: choose the
+**typology**, the **priority** and give the **reason** — all three are required. The priority is yours from the start,
+shown as set by you; the triage's comes beside it with the next run.
