@@ -45,6 +45,11 @@ Every change is kept with its note: if analysts keep raising the same alerts, th
 
 ## Raise an alert by hand
 
-From a finding no scenario retained, **Raise an alert** puts it in the queue. Who raises it classifies it: choose the
-**typology**, the **priority** and give the **reason** — all three are required. The priority is yours from the start,
-shown as set by you; the triage's comes beside it with the next run.
+From a finding no scenario retained, **Raise an alert** puts it in the queue. Who raises it classifies it: the
+**priority** and the **reason** are required. The priority is yours from the start, shown as set by you; the triage's
+comes beside it with the next run.
+
+The **typology** can stay **Not determined yet**. The alert is then listed in the use case it was raised from, under
+*Not determined*, with no triage. It is closed with the generic reasons — **Official page or site of the brand** (no
+longer analysed by any typology), **Legitimate use of the brand**, **Not about the brand** — or escalated, and the
+fraud is qualified in its case.

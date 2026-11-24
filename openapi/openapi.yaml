@@ -4,15 +4,20 @@
 openapi: 3.1.0
 info:
   title: Fraud Engineering Studio API
-  version: 1.1.0
+  version: 1.2.0
   summary: Read and act on alerts and cases from your own systems.
   description: |
     The integration contract of the Fraud Engineering Studio: the routes your case-management system, SIEM or data
     platform calls to read alerts and cases, record decisions, export results, read and export the detection logic, and start
     collections or runs.
 
-    **Status.** This is the contract the Studio implements today. This version has **no authentication**: run the
-    Studio inside your own network, behind your access controls. API keys come in a later version.
+    **Status.** This is the contract the Studio implements today.
+
+    **Authentication.** Send `Authorization: Bearer <key>`. A key stands for one user of the Studio, with that user's
+    rights, and may be held to one organisation. Only a hash of each key is kept: a key is shown once, when it is made
+    (`python3 tools/api_keys.py create --name .. --user ..`). From the Studio's own machine a call without a key is the
+    browser's; from any other machine (the Studio listening on a network, `STUDIO_HOST`), every call needs a key.
+    A wrong or revoked key gets `401`.
 
     **Organisations.** One Studio can serve several organisations, each with its own data, calibrations and lists.
     Every request acts for one: send the header `X-Studio-Org: <organisation id>` (see `GET /api/organisations`).
@@ -28,6 +33,8 @@ servers:
     description: Your Studio, where your organisation runs it.
     variables:
       host: { default: studio.example-bank.com, description: "The address of your Studio." }
+security:
+  - apiKey: []
 tags:
   - name: Knowledge
     description: The typologies and their scenarios, as written, calibrated and exported.
@@ -63,6 +70,8 @@ tags:
     description: Start a data collection from a source, and follow it.
   - name: Service
     description: Is the Studio up.
+  - name: Kit hunting
+    description: "The other sites of a phishing or fake-shop kit, found by its markers — its own files, script names, page title, the constant folder of its paths, the hosts it calls — in the public page scans. Operators only."
 
 paths:
   /api/ping:
@@ -413,11 +422,12 @@ paths:
           application/json:
             schema:
               type: object
-              required: [entity, id, typology]
+              required: [entity, id]
               properties:
                 entity: { type: string, example: ExternalDomain }
                 id: { type: string, example: secure-login-example.com }
-                typology: { type: string, example: credential-phishing }
+                typology: { type: string, example: credential-phishing, description: "Empty: not determined yet -- closed with the generic reasons, or qualified in its case." }
+                use_case: { type: string, description: "The use case it is raised from: where an alert with no typology is listed." }
                 priority: { type: string, enum: [critical, high, medium, low], description: "The analyst's priority, set from the start; the triage's comes beside it with the next run." }
                 note: { type: string, description: Why it is raised. }
       responses:
@@ -999,7 +1009,105 @@ paths:
         "200": { description: The job started., content: { application/json: { schema: { type: object, properties: { job: { type: string } } } } } }
         "400": { $ref: "#/components/responses/Invalid" }
 
+  /api/kit/markers:
+    get:
+      tags: [Kit hunting]
+      operationId: listKitMarkers
+      summary: List a kit's markers
+      description: The markers of a reverse-engineering run's site, of a site, or all of the organisation's.
+      parameters:
+        - { name: run, in: query, description: "A reverse-engineering run.", schema: { type: string } }
+        - { name: seed_id, in: query, description: "The site (or page) the markers were found on.", schema: { type: string }, example: mijnpayportaal.live }
+        - { name: seed_entity, in: query, schema: { type: string, default: ExternalDomain } }
+      responses:
+        "200": { description: The markers., content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/KitMarker" } } } } }
+    post:
+      tags: [Kit hunting]
+      operationId: addKitMarker
+      summary: Add a marker by hand
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, value, seed_id]
+              properties:
+                kind: { type: string, enum: [file_sha256, filename, page_title, url_token, host] }
+                value: { type: string, example: app-form-log.js }
+                label: { type: string }
+                seed_entity: { type: string, default: ExternalDomain }
+                seed_id: { type: string, example: mijnpayportaal.live }
+                run_id: { type: string }
+                note: { type: string }
+      responses:
+        "200": { description: The marker., content: { application/json: { schema: { $ref: "#/components/schemas/KitMarker" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/kit/markers/{marker_id}:
+    post:
+      tags: [Kit hunting]
+      operationId: updateKitMarker
+      summary: Retire a marker, use it again, or set its own limit
+      parameters: [{ name: marker_id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                state: { type: string, enum: [active, retired] }
+                max_scans: { type: integer, description: "A marker matched by more scans is retired by the hunt (default 300)." }
+                note: { type: string }
+      responses:
+        "200": { description: The marker., content: { application/json: { schema: { $ref: "#/components/schemas/KitMarker" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/reverse/{run_id}/markers:
+    post:
+      tags: [Kit hunting]
+      operationId: markersFromRun
+      summary: Read the candidate markers of a run's kit
+      description: Its own files, script names, page title, the constant folders of its paths, the hosts its indicators call -- kept as active markers of its site.
+      parameters: [{ name: run_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: The run's markers., content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/KitMarker" } } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/kit/hunt:
+    post:
+      tags: [Kit hunting]
+      operationId: huntKit
+      summary: Hunt a kit
+      description: Every active marker -- of a run's site, of a site, or all of the organisation's -- searched in the public page scans. The sites found become findings of the seed's group, with its brands. Runs in the background.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                run: { type: string }
+                seed_id: { type: string }
+                seed_entity: { type: string }
+                all: { type: boolean }
+      responses:
+        "200": { description: The job., content: { application/json: { schema: { $ref: "#/components/schemas/KitHunt" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/kit/hunt/{job_id}:
+    get:
+      tags: [Kit hunting]
+      operationId: getKitHunt
+      summary: Follow a hunt
+      parameters: [{ name: job_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200": { description: The job., content: { application/json: { schema: { $ref: "#/components/schemas/KitHunt" } } } }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
+  securitySchemes:
+    apiKey: { type: http, scheme: bearer, description: "A Studio API key (tools/api_keys.py)." }
   parameters:
     scenario_id: { name: scenario_id, in: path, required: true, schema: { type: string }, example: FSL-BID-001 }
     alert_id: { name: alert_id, in: path, required: true, schema: { type: string } }
@@ -1008,6 +1116,32 @@ components:
     NotFound: { description: Not found., content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { error: not found } } } }
     Invalid: { description: Invalid request., content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { error: "a note is required for this reason" } } } }
   schemas:
+    KitMarker:
+      type: object
+      properties:
+        marker_id: { type: string }
+        kind: { type: string, enum: [file_sha256, filename, page_title, url_token, host] }
+        value: { type: string }
+        label: { type: string }
+        seed_entity: { type: string }
+        seed_id: { type: string }
+        run_id: { type: string }
+        state: { type: string, enum: [active, retired] }
+        scans: { type: integer, description: "How many public scans matched it at the last hunt." }
+        hits: { type: integer, description: "How many other sites it found." }
+        max_scans: { type: integer }
+        note: { type: string }
+        hunted_at: { type: string }
+    KitHunt:
+      type: object
+      properties:
+        id: { type: string }
+        status: { type: string, enum: [running, done, error] }
+        stage: { type: string }
+        markers: { type: integer }
+        done: { type: integer }
+        found: { type: integer, description: "Sites found." }
+        error: { type: string }
     Note:
       type: object
       required: [note]

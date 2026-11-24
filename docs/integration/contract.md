@@ -11,10 +11,21 @@ scheduler. This page is the contract — what you can rely on. The [API referenc
 lists every route with its parameters and responses.
 
 :::caution Status
-This is the contract the Studio implements today. **This version has no authentication**: run the Studio inside your
-own network, behind your access controls. API keys come in a later version; the routes and payloads below stay the
-same.
+This is the contract the Studio implements today. Run the Studio inside your own network, behind your access controls.
 :::
+
+## Authentication
+
+Send an **API key** on every call: `Authorization: Bearer <key>`.
+
+- A key stands for one user of the Studio, with that user's rights, and may be held to one organisation.
+- Keys are made on the Studio's machine: `python3 tools/api_keys.py create --name "Example SIEM" --user <user id>`.
+  A key is shown once; the Studio keeps only a fingerprint of it. `list` and `revoke <id>` manage them.
+- From the Studio's own machine, a call without a key acts as the browser does. From any other machine, every call
+  needs a key. A wrong or revoked key gets `401`.
+
+An AI assistant uses the same keys, through the Studio's MCP server: see
+[Connect an AI assistant](../guides/connect-an-ai-assistant.md).
 
 ## What you can do
 
@@ -40,6 +51,7 @@ same.
 | Read what other organisations shared | `GET /api/exchange/inbox`, then `POST /api/exchange/{id}` to watch, activate or dismiss |
 | Answer the people who reported a site | `POST /api/records/{entity}/{id}/replies` |
 | Read coverage and declare a scenario in service | `GET /api/coverage`, `POST /api/deployments` |
+| Hunt the other sites of a phishing or fake-shop kit | `POST /api/kit/hunt` — see [Hunt a kit](../guides/hunt-a-kit.md) |
 
 ## Conventions
 
@@ -47,7 +59,9 @@ same.
 - **Organisation** — the header `X-Studio-Org` says which organisation a call acts for. Without it, the platform's own.
 - **Sites** — a website is returned with the link it was found with, its path kept: `entity.label` and `url`.
 - **Bodies** — JSON, `Content-Type: application/json`.
-- **Errors** — `{"error": "<message>"}` with `400` (invalid request), `404` (not found) or `500` (server error).
+- **Authentication** — `Authorization: Bearer <key>` (see above).
+- **Errors** — `{"error": "<message>"}` with `400` (invalid request), `401` (no valid key), `403` (not allowed for this
+  user), `404` (not found) or `500` (server error).
 - **Times** — UTC.
 - **Ids** — strings. A case id looks like `C-20261025-4d5e6f`.
 - **Long tasks** — a collection or a run returns a job or run id at once; poll it until `finished` is true.
@@ -57,7 +71,8 @@ same.
 ### Pull new alerts
 
 ```bash
-curl -s "https://studio.example-bank.com/api/alerts?status=new&typology=brand-impersonation-online"
+curl -s "https://studio.example-bank.com/api/alerts?status=new&typology=brand-impersonation-online" \
+  -H "Authorization: Bearer $STUDIO_API_KEY"
 ```
 
 ```json

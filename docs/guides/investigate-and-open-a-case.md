@@ -30,6 +30,15 @@ destination is added; nothing is overwritten.
 
 Each link of the chain enters the data, found the same way as the first one, so the scenarios can find it too.
 
+## Find the kit behind a site
+
+For operators, on a case about a website that was inspected:
+
+1. Click **Reverse engineer with AI**. The Studio keeps every file the site loads and explains how it works: what it
+   takes from the victim, what the fraudster will do next, how to find the victims, and the **Indicators** the parties
+   concerned can look for in their own logs (**Copy as CSV**).
+2. Click **Hunt this kit** to find the other sites built with the same kit. See [Hunt a kit](hunt-a-kit.md).
+
 ## Open a case on it
 
 1. In the side panel, click **+ New case**.
