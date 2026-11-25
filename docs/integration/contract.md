@@ -45,8 +45,10 @@ An AI assistant uses the same keys, through the Studio's MCP server: see
 | See what scenarios need: data, context, real time | `GET /api/context?scenarios=…&lineage=1` |
 | Read the Investigations overview: alerts by category, cases | `GET /api/investigations` |
 | Act for one organisation | header `X-Studio-Org: <id>` on every call; `GET /api/organisations` lists them |
-| Pull the findings of the Threat Monitoring use cases | `GET /api/scam/triage` |
+| Pull the findings of the Threat Monitoring use cases | `GET /api/scam/triage`, filtered with `group`, `status`, `priority`, `source`, `since=new`, `q` |
 | Run a use case on a schedule | `POST /api/scam/triage` with `{"group": "online-scams"}` |
+| Analyse only some records of a use case | `POST /api/scam/triage` with `{"group": …, "only": [...]}` |
+| Send findings to Alerts, with their scenarios and priority | `POST /api/scam/triage/alerts` with `{"group": …, "ids": [...]}` |
 | Share a confirmed fraud, a scenario or signals | `POST /api/exchange` |
 | Read what other organisations shared | `GET /api/exchange/inbox`, then `POST /api/exchange/{id}` to watch, activate or dismiss |
 | Answer the people who reported a site | `POST /api/records/{entity}/{id}/replies` |

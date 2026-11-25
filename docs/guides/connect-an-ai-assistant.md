@@ -53,14 +53,22 @@ Any assistant that speaks MCP over stdio works the same way: run `tools/studio_m
 | `list_organisations` | The organisations of the Studio. |
 | `list_alerts`, `get_alert` | Read alerts. |
 | `list_cases`, `get_case` | Read cases. |
-| `threat_monitoring_findings` | Every finding of the Threat Monitoring use cases, its state and priority. |
-| `run_threat_monitoring` | Run a use case: its scenarios, its triage, or both. |
+| `threat_monitoring_findings` | The findings of the Threat Monitoring use cases, filtered by use case, status, priority, source, new since the last pass, or a piece of a domain. |
+| `run_threat_monitoring` | Analyze a use case with AI: its scenarios, its triage, or both — on everything, or only on the records given. |
+| `threat_monitoring_pass` | What the last pass of a use case ran and found. |
+| `send_findings_to_alerts` | Send findings to Alerts from the run that found them: the alert carries its scenarios, trace and priority. |
+| `raise_alert_by_hand` | An alert on a record no scenario retained, with the reason and the analyst's priority. |
 | `reverse_run` | A site's reverse engineering: its analysis and indicators. |
 | `kit_markers`, `markers_from_run`, `add_kit_marker`, `update_kit_marker` | Read and manage a kit's markers. |
-| `hunt_kit`, `job_status` | Hunt a kit, and follow the hunt or any other background job. |
+| `hunt_kit`, `job_status` | Hunt a kit — and, with `analyze`, analyse the sites found right after — and follow the hunt or any other background job. |
+| `remove_kit_sibling` | Remove a site wrongly taken for a sibling; the next hunts leave it out. |
 | `studio_api` | Any other route of the API. |
 
 Every tool takes `org`, the organisation to act for.
+
+The tools follow the Studio's own steps. A finding a scenario retained goes to Alerts with `send_findings_to_alerts`,
+as the Findings list sends it — never as an alert raised by hand, which would lose its scenarios and priority. Alerts
+are what your client sees: ask the assistant to propose them, and send them yourself or on your word.
 
 :::caution What a key can do
 A key acts with its user's rights: an operator's key can run analyses, decide alerts and close cases. Give an assistant

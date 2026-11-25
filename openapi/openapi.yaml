@@ -4,7 +4,7 @@
 openapi: 3.1.0
 info:
   title: Fraud Engineering Studio API
-  version: 1.2.0
+  version: 1.3.0
   summary: Read and act on alerts and cases from your own systems.
   description: |
     The integration contract of the Fraud Engineering Studio: the routes your case-management system, SIEM or data
@@ -813,7 +813,16 @@ paths:
         Every finding of the Threat Monitoring use cases: what the last run of each found, with its priority and where
         it stands — to triage, triaged, new or escalated (it has an alert or a case), closed, watch (online, retained by
         no scenario). A finding closed and then found again by a later run comes back. A site is named by the link
-        it was found with.
+        it was found with. Filters (each a comma-separated list) keep only the matching rows; `total` then counts them.
+      parameters:
+        - { name: group, in: query, schema: { type: string }, example: fraudulent-webshops }
+        - { name: status, in: query, description: "alert, taken_down, none (no alert, not taken down).", schema: { type: string }, example: none }
+        - { name: state, in: query, description: "to_triage, new, watch, blocked, gone...", schema: { type: string } }
+        - { name: priority, in: query, description: "critical, high, medium, low, none.", schema: { type: string }, example: "critical,high" }
+        - { name: source, in: query, description: "The finding's source.", schema: { type: string }, example: kit-siblings }
+        - { name: since, in: query, description: "new or changed since the pass before.", schema: { type: string, enum: [new, changed] } }
+        - { name: q, in: query, description: "A piece of the record's domain, address or name.", schema: { type: string }, example: example-shop }
+        - { name: limit, in: query, schema: { type: integer } }
       responses:
         "200":
           description: The findings, per use case.
@@ -831,8 +840,37 @@ paths:
               properties:
                 group: { type: string, description: "The use case (default: the first).", example: online-scams }
                 step: { type: string, enum: [all, run, triage], default: all }
+                only: { type: array, items: { type: string }, description: "The records to analyse, and only them (domains, page ids). No collect: they are already here.", example: [example-shop.com] }
       responses:
         "200": { description: The pass started., content: { application/json: { schema: { type: object, properties: { id: { type: string } } } } } }
+
+  /api/scam/triage/alerts:
+    post:
+      tags: [Threat Monitoring]
+      operationId: sendFindingsToAlerts
+      summary: Send findings to Alerts
+      description: |
+        Each finding sent from the latest run of the use case that found it, as the Findings list sends it: the alert
+        carries its scenarios, its trace and its finding's priority. An open alert on it is refreshed, never duplicated.
+        A record no run detected is returned in `not_detected`: raising it is a decision by hand (POST /api/alerts).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [group, ids]
+              properties:
+                group: { type: string, example: fraudulent-webshops }
+                ids: { type: array, items: { type: string }, description: "Domains, page ids, or Type|id.", example: [example-shop.com] }
+                note: { type: string, description: "Why, kept in each alert's history." }
+      responses:
+        "200":
+          description: The alerts raised or refreshed, and what no run detected.
+          content: { application/json: { schema: { type: object, properties: {
+            raised: { type: array, items: { type: object, properties: { id: { type: string }, alert_id: { type: string }, typology: { type: string }, run: { type: string }, priority: { type: [string, "null"] } } } },
+            not_detected: { type: array, items: { type: string } }, runs: { type: array, items: { type: object } } } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
 
   /api/scam/triage/runs:
     get:
@@ -1091,8 +1129,31 @@ paths:
                 seed_id: { type: string }
                 seed_entity: { type: string }
                 all: { type: boolean }
+                analyze: { type: boolean, description: "Then the seed's use case analysed with AI on the sites found, and only them." }
       responses:
         "200": { description: The job., content: { application/json: { schema: { $ref: "#/components/schemas/KitHunt" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/kit/siblings/remove:
+    post:
+      tags: [Kit hunting]
+      operationId: removeKitSibling
+      summary: Remove a wrong kit sibling
+      description: A site wrongly taken for a sibling -- of one seed, or of every seed -- removed and kept out of the next hunts. Its record and any alert stay.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain]
+              properties:
+                domain: { type: string, example: example-garage.com }
+                seed_id: { type: string }
+                seed_entity: { type: string, default: ExternalDomain }
+                reason: { type: string }
+      responses:
+        "200": { description: What was removed., content: { application/json: { schema: { type: object, properties: { domain: { type: string }, seed: { type: [string, "null"] }, removed: { type: integer } } } } } }
         "400": { $ref: "#/components/responses/Invalid" }
 
   /api/kit/hunt/{job_id}:
@@ -1141,6 +1202,9 @@ components:
         markers: { type: integer }
         done: { type: integer }
         found: { type: integer, description: "Sites found." }
+        sites: { type: array, items: { type: string }, description: "The sites found." }
+        analyze: { type: boolean }
+        passes: { type: array, items: { type: object, properties: { group: { type: string }, pass: { type: string }, sites: { type: integer } } }, description: "With analyze: the passes started, one per use case." }
         error: { type: string }
     Note:
       type: object

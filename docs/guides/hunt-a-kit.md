@@ -34,6 +34,16 @@ The sites found join the use case of the case you started from, with the same br
 reads them and the scenarios judge them like any other finding. **Why it is here** says **Same kit as** the site you
 started from.
 
+## Judge what it found
+
+The sites a hunt brings are only candidates. Analyse them where they joined — the use case's **Findings**, filtered on
+the source **Kit siblings**, then **Analyze with AI** on what the list shows: only those sites are read, nothing is
+collected again. Send the ones the scenarios retained to **Alerts** from the list, as any other finding.
+
+A site wrongly taken for a sibling — a genuine site that happens to share a file — is removed with the API
+(`POST /api/kit/siblings/remove`): it leaves the findings, and the next hunts leave it out. Its record, and any alert
+already raised on it, stay; close the alert if there is one.
+
 ## The markers
 
 Under the reverse engineering, **Kit markers** lists what the hunt searches.
@@ -68,12 +78,17 @@ API — to find the kit's new sites.
 | Add a marker by hand | `POST /api/kit/markers` |
 | Retire a marker, use it again, or set its own limit | `POST /api/kit/markers/{marker_id}` |
 | Hunt a run's kit, a site's, or every marker | `POST /api/kit/hunt` with `{"run": …}`, `{"seed_id": …}` or `{"all": true}` |
+| Hunt, then analyse the sites found (and only them) in their use case | `POST /api/kit/hunt` with `"analyze": true` |
 | Follow the hunt | `GET /api/kit/hunt/{job_id}` |
+| The sites it brought, in the findings | `GET /api/scam/triage?source=kit-siblings&since=new` |
+| Send the retained ones to Alerts | `POST /api/scam/triage/alerts` with `{"group": …, "ids": [...]}` |
+| Remove a wrong sibling | `POST /api/kit/siblings/remove` with `{"domain": …}` |
 
 ```bash
 curl -s -X POST https://studio.example-bank.com/api/kit/hunt \
   -H "Authorization: Bearer $STUDIO_API_KEY" -H "X-Studio-Org: example-bank" \
-  -H "Content-Type: application/json" -d '{"all": true}'
+  -H "Content-Type: application/json" -d '{"all": true, "analyze": true}'
 ```
 
-Call it daily from a scheduler to keep up with the kits you already know.
+Call it daily from a scheduler to keep up with the kits you already know: each morning, the new sites of known kits
+are already analysed and waiting in the findings, with their priority.
