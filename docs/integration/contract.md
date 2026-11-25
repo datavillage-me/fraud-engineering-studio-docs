@@ -53,7 +53,12 @@ An AI assistant uses the same keys, through the Studio's MCP server: see
 | Read what other organisations shared | `GET /api/exchange/inbox`, then `POST /api/exchange/{id}` to watch, activate or dismiss |
 | Answer the people who reported a site | `POST /api/records/{entity}/{id}/replies` |
 | Read coverage and declare a scenario in service | `GET /api/coverage`, `POST /api/deployments` |
+| Read everything known of a record: data, links, evidence | `GET /api/inspect/{entity}/{id}` |
+| Inspect a site or a page as a visitor would | `POST /api/inspect/{entity}/{id}/all` |
+| Reverse engineer a site's kit (operators) | `POST /api/reverse/{entity}/{id}/{inspection_id}`, then `GET /api/reverse/{run_id}` |
 | Hunt the other sites of a phishing or fake-shop kit | `POST /api/kit/hunt` — see [Hunt a kit](../guides/hunt-a-kit.md) |
+| Merge a duplicate alert into another | `POST /api/alerts/{alert_id}` with `{"action": "merge", "into": …}` |
+| Open links in your isolated browser | `POST /api/settings` with `{"isolated_browser": "https://…{raw_url}"}` |
 
 ## Conventions
 
@@ -73,7 +78,7 @@ An AI assistant uses the same keys, through the Studio's MCP server: see
 ### Pull new alerts
 
 ```bash
-curl -s "https://studio.example-bank.com/api/alerts?status=new&typology=brand-impersonation-online" \
+curl -s "https://studio.example-bank.com/api/alerts?status=new&typology=credential-phishing" \
   -H "Authorization: Bearer $STUDIO_API_KEY"
 ```
 
@@ -81,11 +86,11 @@ curl -s "https://studio.example-bank.com/api/alerts?status=new&typology=brand-im
 [
   {
     "alert_id": "A-3f9c2a71b04e",
-    "typology": "brand-impersonation-online",
-    "scenarios": ["FSL-BIP-001"],
-    "entity": { "type": "ExternalPage", "id": "100000000000001", "label": "Example Bank Support" },
+    "typology": "credential-phishing",
+    "scenarios": ["FSL-CRP-001"],
+    "entity": { "type": "ExternalDomain", "id": "secure-login-example.com", "label": "https://secure-login-example.com/login" },
     "status": "new",
-    "triage": { "priority": "critical", "disposition": null, "rule": "An ad is running" },
+    "triage": { "priority": "critical", "disposition": null, "rule": "New site still online" },
     "subject_case": null
   }
 ]
@@ -95,7 +100,7 @@ curl -s "https://studio.example-bank.com/api/alerts?status=new&typology=brand-im
 
 ```bash
 curl -s -X POST "https://studio.example-bank.com/api/alerts/A-3f9c2a71b04e" \
-  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $STUDIO_API_KEY" -H "Content-Type: application/json" \
   -d '{"action": "escalate", "note": "Confirmed by the fraud desk."}'
 ```
 
@@ -105,8 +110,8 @@ The alert joins the open case of its subject, or a new one. Its `case_id` says w
 
 ```bash
 curl -s -X POST "https://studio.example-bank.com/api/cases/C-20261025-4d5e6f" \
-  -H "Content-Type: application/json" \
-  -d '{"action": "close", "typology": "brand-impersonation-online", "disposition": "impersonation", "note": "Page taken down by the platform."}'
+  -H "Authorization: Bearer $STUDIO_API_KEY" -H "Content-Type: application/json" \
+  -d '{"action": "close", "typology": "credential-phishing", "disposition": "phishing", "note": "Site taken down by its host."}'
 ```
 
 A case closed as confirmed fraud must be qualified first (`"action": "qualify"`).
@@ -114,7 +119,8 @@ A case closed as confirmed fraud must be qualified first (`"action": "qualify"`)
 ### Export a typology
 
 ```bash
-curl -s -o typology.zip "https://studio.example-bank.com/api/ofef-export/brand-impersonation-online?calibration=1"
+curl -s -o typology.zip "https://studio.example-bank.com/api/ofef-export/credential-phishing?calibration=1" \
+  -H "Authorization: Bearer $STUDIO_API_KEY"
 ```
 
 The zip is an execution package: the scenarios in Gherkin, their indicators, features and AI questions — only those the
@@ -125,7 +131,8 @@ scenarios need — the **context builder** of each unit and each scenario as SQL
 ### Export for a data platform
 
 ```bash
-curl -s -o alerts.parquet "https://studio.example-bank.com/api/export/alerts?format=parquet&status=closed,escalated"
+curl -s -o alerts.parquet "https://studio.example-bank.com/api/export/alerts?format=parquet&status=closed,escalated" \
+  -H "Authorization: Bearer $STUDIO_API_KEY"
 ```
 
 ## The contract itself

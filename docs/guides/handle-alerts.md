@@ -12,18 +12,28 @@ The list shows the **new** alerts, ordered by the triage's priority. The status 
 **escalated** ones. An alert shows what it is about — a site with the link it was found with — the scenarios that found
 it with the conditions they checked, and the triage's proposal.
 
-![An alert: why it was raised, and the decision — investigate it, or close it with a reason](/img/screens/alert.png)
+![An alert: where it stands (Finding → Alert → Case), why it was raised, and the decision](/img/screens/alert.png)
 
-1. Open an alert.
-2. Check the triage's proposed decision, if any, against what you see. **Site ↗** opens the site at the link found.
+1. Open an alert. The line under its name shows where it stands: **Finding → Alert → Case**.
+2. Check the triage's proposed decision, if any, against what you see. The buttons under its name — **Site ↗**,
+   **Page ↗** — open the subject outside the Studio; **Inspect** looks at it as a visitor would.
 3. Choose:
-   - **Yes — investigate it** to escalate. The alert joins the case of its subject — a new case if none is open. If a
-     case is already open on the same subject, the alert says which one.
-   - A **reason** to close it: a homonym, the brand's own page… The reasons come from the typology. Some require a
-     note; some have effects, shown under the reason.
+   - **Confirmed — take action** to escalate. The alert joins the case of its subject — a new case if none is open —
+     where the fraud is followed until it is down. If a case is already open on the same subject, the alert says
+     which one. A fraud already taken down is confirmed here too: the case records it.
+   - Under **Not a fraud — close as a false positive**, a **reason**: a homonym, the brand's own page… The reasons
+     come from the typology. Some require a note; some have effects, shown under the reason.
 4. Confirm.
 
 To change a decision, open the alert and click **Reopen alert**. Its effects are undone.
+
+## Merge a duplicate
+
+Two alerts on the same site in one case — one raised by hand, one sent later from the run that found it — are a
+duplicate. An alert is never deleted: on the case, **⋯ › Merge into …** on the duplicate closes it as **merged** into
+the other. It leaves the case's alerts, its history stays, and **Reopen alert** undoes it. Only an open alert on the
+same site or page, in the same case, can be merged into. API: `POST /api/alerts/{alert_id}` with
+`{"action": "merge", "into": "<the other alert>"}`.
 
 :::info Closed, then back
 A site closed because its host took it down, then found again online by a later run, comes back under **Findings**.
@@ -45,7 +55,8 @@ Every change is kept with its note: if analysts keep raising the same alerts, th
 
 ## Raise an alert by hand
 
-From a finding no scenario retained, **Raise an alert** puts it in the queue. Who raises it classifies it: the
+From a finding no scenario retained, **Raise as alert** puts it in the queue. (A finding a scenario found is sent
+from its run instead, with its scenarios: see [Monitor online scams](monitor-online-scams).) Who raises it classifies it: the
 **priority** and the **reason** are required. The priority is yours from the start, shown as set by you; the triage's
 comes beside it with the next run.
 

@@ -14,7 +14,7 @@ enters it.
 |---|---|---|---|
 | **1. Collect** | Fraud engineer, or a schedule | Sources bring new records, with how each was found. | A use case › **Analyze with AI**, or Connections |
 | **2. Analyse** | Fraud engineer | The use case runs its typologies' scenarios on the data. Enrichments read what the scenarios need. | A use case › **Analyze with AI** |
-| **3. Send to alerts** | Automatic, or the analyst | Findings from the use case's alert level up become alerts by themselves; others can be raised by hand. | A use case › Findings |
+| **3. Send to alerts** | Automatic, or the analyst | With an alert level (a priority, medium by default), the findings from it up become alerts by themselves; with none, the analyst sends them with **Raise as alert**. An alert sent from a finding keeps the scenarios that found it. | A use case › Findings |
 | **4. Triage** | Automatic | Each finding gets a priority and, when possible, a proposed decision. | A use case › Findings, Alerts |
 | **5. Decide the alert** | Analyst | Close it with a reason, or escalate it to a case. | An alert |
 | **6. Investigate** | Analyst | Inspect the subject and what it leads to, add notes, open related cases. | A case |

@@ -25,9 +25,10 @@ Give the typology, the unit, the title and the steps. Each step names an existin
 sets is written `<name>` in the step. A *Given* is a fact about the record itself, never how it was found.
 
 ```bash
-curl -s -X POST https://studio.example-bank.com/api/scenarios -H "Content-Type: application/json" -d '{
-  "typology": "brand-impersonation-online",
-  "unit": "UNIT-FIP-SITE",
+curl -s -X POST https://studio.example-bank.com/api/scenarios \
+  -H "Authorization: Bearer $STUDIO_API_KEY" -H "Content-Type: application/json" -d '{
+  "typology": "credential-phishing",
+  "unit": "UNIT-WEB-SITE",
   "title": "A look-alike website that asks for its visitors'\'' secrets",
   "steps": [
     {"role": "given", "text": "the domain is not one of the brand'\''s own domains", "indicator": "IND-DOMAIN-NOT-BRAND-OWNED"},
@@ -38,7 +39,7 @@ curl -s -X POST https://studio.example-bank.com/api/scenarios -H "Content-Type: 
 }'
 ```
 
-The Studio gives the scenario its id and deduces the rest from the typology's scenarios on the same unit. The new
+The Studio gives the scenario its id — the next free one of the typology, for example `FSL-CRP-006` — and deduces the rest from the typology's scenarios on the same unit. The new
 scenario is a **draft**.
 
 :::note AI conditions
@@ -52,19 +53,23 @@ Send the whole scenario as it should be: its title, its steps and, if it has AI 
 update makes a new version and needs a note.
 
 ```bash
-curl -s -X POST https://studio.example-bank.com/api/scenarios/FSL-BID-004 -H "Content-Type: application/json" \
+curl -s -X POST https://studio.example-bank.com/api/scenarios/FSL-CRP-006 \
+  -H "Authorization: Bearer $STUDIO_API_KEY" -H "Content-Type: application/json" \
   -d '{"title": "...", "steps": [ ... ], "note": "Only live sites."}'
 ```
 
-A triage is updated the same way, with its rules in order: `POST /api/scenarios/TRI-BIP-001`.
+A triage is updated the same way, with its rules in order: `POST /api/scenarios/TRI-CRP-001`.
 
 ## 3. Calibrate it
 
-A scenario runs only once calibrated. Set its parameters and save a new calibration version:
+A scenario runs only once calibrated. Set its parameters — `rules` for the values its rule steps compare with, `ai`
+for the answers of each AI question that make it alert — and save a new calibration version. Here `FSL-CRP-001`,
+whose question `collection` asks what the page wants from its visitor:
 
 ```bash
-curl -s -X POST https://studio.example-bank.com/api/detections/FSL-BID-004 -H "Content-Type: application/json" \
-  -d '{"rules": {"max_followers": 500}, "note": "Small pages only."}'
+curl -s -X POST https://studio.example-bank.com/api/detections/FSL-CRP-001 \
+  -H "Authorization: Bearer $STUDIO_API_KEY" -H "Content-Type: application/json" \
+  -d '{"ai": {"collection": {"alert_on": [3, 4]}}, "note": "Alert from a call to act on the account up."}'
 ```
 
 ## 4. Retire it
@@ -73,6 +78,7 @@ A scenario is never deleted: its runs and alerts must stay explainable. Retiring
 everything else.
 
 ```bash
-curl -s -X POST https://studio.example-bank.com/api/scenarios/FSL-BID-004/retire -H "Content-Type: application/json" \
-  -d '{"note": "Replaced by FSL-BID-005."}'
+curl -s -X POST https://studio.example-bank.com/api/scenarios/FSL-CRP-006/retire \
+  -H "Authorization: Bearer $STUDIO_API_KEY" -H "Content-Type: application/json" \
+  -d '{"note": "Replaced by FSL-CRP-007."}'
 ```

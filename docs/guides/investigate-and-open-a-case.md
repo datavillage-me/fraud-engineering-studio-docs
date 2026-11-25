@@ -13,10 +13,13 @@ domain a site redirects to. Each can become a case of its own, linked to the fir
 
 ## Inspect the subject
 
-1. Open the case.
-2. Click **Inspect**. The Studio looks at the subject as a visitor would and keeps what it saw as evidence: for a
-   page, its recent ads (running or stopped, removed by the platform, where each leads); for a website, its pages,
-   screenshots and forms.
+A subject is inspected on its **alert**, before the alert is escalated: the case then shows what was seen.
+
+1. Open the alert and click **Inspect**. The Studio looks at the subject as a visitor would and keeps what it saw as
+   evidence: for a page, its recent ads (running or stopped, removed by the platform, where each leads); for a
+   website, its pages, screenshots and forms.
+2. Escalate it. In the case, **In short** and **Detail › Inspection** show the inspection, with its date. A case has
+   no **Inspect** button of its own: it decides on what was inspected.
 3. Click a capture to see it large, with what was seen there. Use **←** and **→** to move between captures.
 
 ## Follow where it leads
@@ -25,8 +28,9 @@ Inspections record where a record leads: an ad to its site, a site to the site i
 **Leads to** and **Reached from**, with the dates each link was seen. If a site starts redirecting elsewhere, the new
 destination is added; nothing is overwritten.
 
-1. Click a site under **Leads to** — in a record, or in an ad's capture. It opens in the side panel.
-2. Click **Inspect** to look at it: its pages, the forms it shows, and where it leads in turn.
+1. Click a site under **Leads to** — in a record, or in an ad's capture. It opens in the side panel, with what is
+   known of it: its record, the inspections already made, and where it leads in turn.
+2. To inspect it, open it from **Findings** or from its own alert and click **Inspect** there.
 
 Each link of the chain enters the data, found the same way as the first one, so the scenarios can find it too.
 

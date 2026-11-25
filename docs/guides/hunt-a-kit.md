@@ -19,8 +19,14 @@ Reverse engineering and kit hunting are for the platform's operators. A client's
 
 ## Before you start
 
-The site must have been inspected (**Inspect**) and reverse engineered (**Reverse engineer with AI**): the hunt reads
-the kit's markers from the files the reverse engineering kept.
+The site must have been inspected (**Inspect**, on its alert) and reverse engineered (**Reverse engineer with AI**, on
+its case): the hunt reads the kit's markers from the files the reverse engineering kept. **Hunt this kit** appears on
+the case's full page as soon as the reverse engineering has ended.
+
+The hunt itself uses no AI: it searches the kit's markers — its own files, script names, page title, the constant
+folders of its paths, the hosts it calls — in the public page scans, and a marker found on too many scans is set
+aside as too common. The AI comes before (the reverse engineering reads the kit) and after (the scenarios judge the
+sites found).
 
 ## Hunt the kit
 

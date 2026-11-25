@@ -29,8 +29,13 @@ Each organisation chooses its use cases. Each use case has four pages: **Dashboa
    each finding a priority. **Show the run** follows it scenario by scenario, with how many cases each step kept.
 2. **Findings** lists what the last run found and where each stands: **To triage**, **Triaged**, **Watch** (online,
    but retained by no scenario), **Not retained**, **Blocked**, **Answered**.
-3. Findings from the use case's alert level up — **medium** by default — become **alerts** by themselves. Any finding
-   can be raised by hand with **Raise an alert**.
+3. What becomes an **alert** depends on the use case's **alert level**, set for each deployment (`alert_from`):
+   - a priority — **medium** by default: findings from that priority up become alerts by themselves;
+   - **none**: the analysis only finds and classifies, and the analyst decides which findings go to Alerts with
+     **Raise as alert**. The tooltip of **Analyze with AI** says which applies.
+
+   A finding a scenario found is sent to Alerts **from the run that found it**: the alert keeps its scenarios, what
+   each step saw and the AI's answers, and so does its case. Only a finding no scenario retained is raised by hand.
 4. An analyst decides each alert — see [Handle alerts](../guides/handle-alerts) — and escalates the frauds to a
    **case**.
 
