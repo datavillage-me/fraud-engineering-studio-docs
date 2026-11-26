@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
     "guides/edit-a-triage",
     "guides/manage-scenarios-with-the-api",
     "guides/connect-an-ai-assistant",
+    "guides/work-with-claude",
   ],
   api: [
     "integration/contract",

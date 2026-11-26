@@ -23,3 +23,4 @@ description: Step-by-step guides for the everyday tasks in the Studio.
 | [Edit a triage](edit-a-triage.md) | Change how findings are prioritised and what decision is proposed. |
 | [Manage scenarios with the API](manage-scenarios-with-the-api.md) | Create, update, calibrate and retire scenarios from your own tools. |
 | [Connect an AI assistant](connect-an-ai-assistant.md) | Let an assistant drive the Studio through its API: an API key and the MCP server. |
+| [Work with the Studio in Claude](work-with-claude.md) | A Claude project that works in your Studio: with one skill. |

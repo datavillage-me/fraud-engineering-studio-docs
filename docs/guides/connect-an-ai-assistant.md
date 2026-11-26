@@ -70,6 +70,19 @@ The tools follow the Studio's own steps. A finding a scenario retained goes to A
 as the Findings list sends it — never as an alert raised by hand, which would lose its scenarios and priority. Alerts
 are what your client sees: ask the assistant to propose them, and send them yourself or on your word.
 
+## 4. Give it the Studio's way of working
+
+The tools say what the assistant *can* do; the skill that comes with the Studio says *how*: which steps follow which, when
+a finding goes to Alerts and how, what is never done (reading the data store, raising by hand what a scenario found,
+deleting an alert), and the usual pitfalls (cloaked phishing sites, homonyms). It is the folder `skills/fraud-studio/` of
+the Studio, a `SKILL.md` file.
+
+- **Claude** — add the folder as a skill of your account or organisation.
+- **Claude Code** — copy it into the `.claude/skills/` folder of your project, or of your user.
+- **Another assistant** — give it `SKILL.md` as its instructions.
+
+It names no organisation and no use case: the assistant reads them from the Studio it is connected to. To set up a whole Claude project around it, see [Work with the Studio in Claude](work-with-claude.md).
+
 :::caution What a key can do
 A key acts with its user's rights: an operator's key can run analyses, decide alerts and close cases. Give an assistant
 a key of its own, so its calls are recognisable, and revoke it when you no longer use it.
