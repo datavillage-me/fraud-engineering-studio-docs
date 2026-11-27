@@ -75,7 +75,7 @@ A new scenario is a **draft** and does not run yet. [Calibrate it](calibrate-a-s
 
 - One scenario, one way of recognising the fraud. Two different patterns are two scenarios.
 - The population (*Given*) uses collected data only; anything costly — reading a website, asking the AI — is a *When*.
-- A condition is a fact, not a judgment: *the domain is less than 30 days old* belongs to the calibration as
+- A condition is a fact, not a judgment: *the domain is less than N days old* belongs to the calibration as
   *the domain is recent*.
 - A scenario looks at every record of its kind, whatever source brought it. Never filter on a source or on how a
   record was found: that is evidence, not a condition.

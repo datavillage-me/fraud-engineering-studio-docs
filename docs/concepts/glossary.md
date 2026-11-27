@@ -8,9 +8,10 @@ description: The words the Studio uses, one line each.
 
 | Term | Meaning |
 |---|---|
-| **Typology** | A kind of fraud, described once: how it works, who it targets, the scenarios that detect it and what is done with what they find. *Example: brand impersonation online.* |
+| **Typology** | A kind of fraud, described once: how it works, who it targets, the scenarios that detect it and what is done with what they find. *Example: credential phishing.* |
 | **Scenario** | One way of recognising a typology, written in plain language as *Given* (the population looked at), *When* (the conditions) and *Then it becomes a finding*. |
 | **Condition** | One fact in a scenario. A **rule** condition is computed from data; an **AI** condition is a question a language model answers on the record. |
+| **Process** | A long action running in the background — a collection, an analysis, an inspection, a reverse engineering, a kit hunt. The indicator in the top bar lists them, with how far each has got and a link to where it is followed; the button that started one shows it running, even after you leave the page and come back. |
 | **Indicator** | A named, reusable rule condition, such as *the domain is not one of the brand's own*. |
 | **Feature** | A value computed for each case, at its moment, that indicators read: *whether a call was in progress*, *the domain's age in days*. |
 | **Unit** | What one case is: a payment, a credit received, a page, a domain. Each scenario declares its unit; features are computed for each case at its moment. |
@@ -23,6 +24,10 @@ description: The words the Studio uses, one line each.
 | **Synthetic data** | Labelled test datasets, kept apart — generated or imported — to measure analyses: recall, precision, false alarms. A run on them never raises an alert. |
 | **Online data** | The data the detections watch, collected by the sources. Runs on it can raise alerts. |
 | **Alert** | A finding sent for review. One alert per unit, whatever the number of scenarios that found it. |
+| **Severity** | How serious a finding, an alert or a case is: critical, high, medium or low. Given by the triage, changed by an analyst with a reason. |
+| **Threat state** | What a site or a page is doing, at the date it was seen: live, cloaked, not active yet, blocked, suspended by the registrar, removed by the platform, offline or unreadable. Never mixed with the severity or the handling. |
+| **Taken down** | Blocked, suspended or removed: a third party is seen to have acted on the site or page. Offline is not taken down. |
+| **To watch** | A filter, not a value: findings with no alert, and a low severity or not active yet — checked again at every analysis. |
 | **Triage** | Rules that order alerts by priority (critical to low) and propose a decision, such as *homonym*, for the analyst to confirm. |
 | **Decision** | How an alert or a case is closed, with a reason the typology defines. A decision can have **effects**: exclude a record, add it to a list. |
 | **Case** | An investigation of one subject. Opened when an alert is escalated, or by hand. Later alerts on the same subject join it. |

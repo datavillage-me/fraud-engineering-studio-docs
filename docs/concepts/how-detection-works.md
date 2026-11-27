@@ -25,7 +25,7 @@ customer, the account, the payee.
 ## 2. Features: values computed for each case
 
 A **feature** is one value computed for each case, always *at the moment of the case*: whether a call was in progress,
-how this amount compares with the customer's last 90 days, whether the payee was ever paid before.
+how this amount compares with the customer's usual payments, whether the payee was ever paid before.
 
 Features read the moment and the people of the case — columns every unit provides under the same names. The same
 feature therefore works for any unit that is an event: *a call in progress* is checked at the moment of a payment, or
@@ -33,7 +33,7 @@ at the moment a card is added to a wallet.
 
 ## 3. Indicators test the values
 
-An **indicator** is one named condition on features: *a call is in progress, or ended less than 15 minutes before*.
+An **indicator** is one named condition on features: *a call is in progress, or ended shortly before*.
 Its thresholds are not in the indicator: they come from the [calibration](../guides/calibrate-a-scenario) of your
 institution.
 
@@ -43,7 +43,7 @@ A **scenario** reads like a sentence:
 
 ```gherkin
 Scenario: A payment made while an impersonation call is still live
-  Given the payment is completed, with at least 90 days of history before it
+  Given the payment is completed, with enough history before it
   When an inbound call is in progress
   And the customer has never paid that payee before
   And the amount exceeds what the customer usually pays

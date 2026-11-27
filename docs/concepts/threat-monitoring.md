@@ -27,10 +27,12 @@ Each organisation chooses its use cases. Each use case has four pages: **Dashboa
 
 1. **Analyze with AI** runs the use case: its sources collect, its typologies' scenarios run, and the triage gives
    each finding a priority. **Show the run** follows it scenario by scenario, with how many cases each step kept.
-2. **Findings** lists what the last run found and where each stands: **To triage**, **Triaged**, **Watch** (online,
-   but retained by no scenario), **Not retained**, **Blocked**, **Answered**.
+2. **Findings** lists what the last run found, on three axes never mixed: its **severity** (critical to low), its
+   **threat state** (live, cloaked, not active yet, blocked, suspended, removed, offline, unreadable — with the date
+   seen; *taken down* groups blocked, suspended and removed) and its **handling** (to triage, triaged, alert, case).
+   **To watch** is a filter: no alert, and a low severity or not active yet.
 3. What becomes an **alert** depends on the use case's **alert level**, set for each deployment (`alert_from`):
-   - a priority — **medium** by default: findings from that priority up become alerts by themselves;
+   - a priority: findings from that priority up become alerts by themselves;
    - **none**: the analysis only finds and classifies, and the analyst decides which findings go to Alerts with
      **Raise as alert**. The tooltip of **Analyze with AI** says which applies.
 

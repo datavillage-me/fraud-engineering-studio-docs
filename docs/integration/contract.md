@@ -19,8 +19,8 @@ This is the contract the Studio implements today. Run the Studio inside your own
 Send an **API key** on every call: `Authorization: Bearer <key>`.
 
 - A key stands for one user of the Studio, with that user's rights, and may be held to one organisation.
-- Keys are made on the Studio's machine: `python3 tools/api_keys.py create --name "Example SIEM" --user <user id>`.
-  A key is shown once; the Studio keeps only a fingerprint of it. `list` and `revoke <id>` manage them.
+- An administrator of the Studio creates the key, for one user, and can list and revoke the keys. A key is shown
+  once; the Studio keeps only a fingerprint of it.
 - From the Studio's own machine, a call without a key acts as the browser does. From any other machine, every call
   needs a key. A wrong or revoked key gets `401`.
 
@@ -41,6 +41,7 @@ An AI assistant uses the same keys, through the Studio's MCP server: see
 | Read the detection logic | `GET /api/scenarios/{scenario_id}`, `GET /api/detections/{scenario_id}` |
 | Create, update, calibrate or retire a scenario | see [Manage scenarios with the API](../guides/manage-scenarios-with-the-api.md) |
 | Keep your lists in sync | `POST /api/lists/{list_id}` |
+| Protect a new brand | `POST /api/lists/protected-brands`, then `POST /api/active/brands` with `{"add": [...]}` |
 | Export a typology for another engine or a review | `GET /api/ofef-export/{typology}?calibration=1` |
 | See what scenarios need: data, context, real time | `GET /api/context?scenarios=…&lineage=1` |
 | Read the Investigations overview: alerts by category, cases | `GET /api/investigations` |

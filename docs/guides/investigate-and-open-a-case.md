@@ -17,8 +17,23 @@ A subject is inspected on its **alert**, before the alert is escalated: the case
 
 1. Open the alert and click **Inspect**. The Studio looks at the subject as a visitor would and keeps what it saw as
    evidence: for a page, its recent ads (running or stopped, removed by the platform, where each leads); for a
-   website, its pages, screenshots and forms.
-2. Escalate it. In the case, **In short** and **Detail › Inspection** show the inspection, with its date. A case has
+   website, its pages, screenshots and forms; for an **account** held at your institution, what your own data says
+   about it — nothing is fetched outside:
+
+   | Question | What the inspection of an account answers |
+   |---|---|
+   | Since when | When the account was opened, when its holder became a customer, the first payment received. |
+   | What it receives | How many payments, how much, from how many payers, and how many different names the payers gave. |
+   | Where the money goes | What was sent, by method, the largest destinations, and the share of the money received that was moved on — by transfer, cash or crypto, not card spending — within 24 hours. |
+   | Who is behind it | The holder, the holder's other accounts, and the customers using the same devices. |
+   | Is it known | The lists it is on, and its alerts and cases. |
+
+   Names are never copied: only how many there are.
+2. Click **Generate report with AI**, next to **Inspect**. The report is drafted from what the inspection saw and what
+   the data holds: a result, a summary, the observations — each with what it rests on — and the next steps. Read it,
+   correct it, then publish it: it shows first on the alert and stays on its case. The same button works on a site, a
+   page or an account. It appears once the subject has been inspected.
+3. Escalate it. In the case, **In short** and **Detail › Inspection** show the inspection, with its date. A case has
    no **Inspect** button of its own: it decides on what was inspected.
 3. Click a capture to see it large, with what was seen there. Use **←** and **→** to move between captures.
 

@@ -8,10 +8,8 @@ description: Find the other sites built with the same phishing or fake-shop kit 
 
 **Where:** Threat Monitoring › a use case › **Cases** › a case on a website › **Reverse engineering**
 
-A fraudster changes domain every few days, but rarely rewrites the kit behind the site: the same files, the same
-script names, the same page title, the same folder in its links, the same servers it calls. **Hunt this kit** searches
-the public page scans for those **markers** and brings back the other sites of the same kit — including the ones no
-other source found, because their names carry no brand.
+A fraudster changes domain every few days, but rarely rewrites the kit behind the site. **Hunt this kit** finds the
+other sites built from the same kit as the site under investigation — including the ones no other source found.
 
 :::info Operators only
 Reverse engineering and kit hunting are for the platform's operators. A client's analyst does not see them.
@@ -20,81 +18,33 @@ Reverse engineering and kit hunting are for the platform's operators. A client's
 ## Before you start
 
 The site must have been inspected (**Inspect**, on its alert) and reverse engineered (**Reverse engineer with AI**, on
-its case): the hunt reads the kit's markers from the files the reverse engineering kept. **Hunt this kit** appears on
-the case's full page as soon as the reverse engineering has ended.
-
-The hunt itself uses no AI: it searches the kit's markers — its own files, script names, page title, the constant
-folders of its paths, the hosts it calls — in the public page scans, and a marker found on too many scans is set
-aside as too common. The AI comes before (the reverse engineering reads the kit) and after (the scenarios judge the
-sites found).
+its case). **Hunt this kit** appears on the case's full page as soon as the reverse engineering has ended.
 
 ## Hunt the kit
 
 1. Open the case on the website.
-2. Click **Hunt this kit**. The Studio reads the kit's markers from the reverse engineering, then searches each of them
-   in the public page scans. The button shows how far it has got.
+2. Click **Hunt this kit**. The button shows how far it has got.
 3. When it ends, the sites found are listed under the reverse engineering: **N other sites of the same kit**, each with
-   the markers it shares and when it was last seen. Click one to open its record.
+   when it was last seen. Click one to open its record.
 
-The sites found join the use case of the case you started from, with the same brands. The next run of the use case
-reads them and the scenarios judge them like any other finding. **Why it is here** says **Same kit as** the site you
-started from.
+The sites found join the use case of the case you started from, with the same brands. **Why it is here** says
+**Same kit as** the site you started from.
 
 ## Judge what it found
 
 The sites a hunt brings are only candidates. Analyse them where they joined — the use case's **Findings**, filtered on
-the source **Kit siblings**, then **Analyze with AI** on what the list shows: only those sites are read, nothing is
-collected again. Send the ones the scenarios retained to **Alerts** from the list, as any other finding.
+the source **Kit siblings**, then **Analyze with AI** on what the list shows. Send the ones the scenarios retained to
+**Alerts**, as any other finding.
 
-A site wrongly taken for a sibling — a genuine site that happens to share a file — is removed with the API
-(`POST /api/kit/siblings/remove`): it leaves the findings, and the next hunts leave it out. Its record, and any alert
-already raised on it, stay; close the alert if there is one.
+A genuine site wrongly taken for a sibling is removed from the findings, and the next hunts leave it out. Its record,
+and any alert already raised on it, stay; close the alert if there is one.
 
-## The markers
+**Kit markers**, under the reverse engineering, shows what identifies the kit. An operator can set aside one that
+brings back genuine sites, or add one found by hand.
 
-Under the reverse engineering, **Kit markers** lists what the hunt searches.
-
-| Kind | What it is | Example |
-|---|---|---|
-| **File (hash)** | One of the site's own files, byte for byte | the kit's form script |
-| **File name** | The name of one of its scripts | `app-form-log.js` |
-| **Page title** | The title the kit gives its page | `Example Pay — choose your bank` |
-| **Path token** | A constant folder in its links | `/Xk9fQwT2abR/` |
-| **Host called** | A server the kit's code calls: where it sends data, or where it gets its content | `relay.example-feed.com` |
-
-Each marker shows how many scans matched it (**Scans**) and how many other sites it found (**Sites**).
-
-- **Retire** a marker that brings back genuine sites — a bank's logo, an image many sites share. **Use again** brings
-  it back.
-- **Add marker**: choose the kind, type the value, click **Add marker**. Use it for a marker you found yourself — a
-  product photo the same fake shops share, a title you saw.
-- A marker matched by more than 300 scans is too common to identify a kit: the hunt retires it by itself and says so.
-
-:::tip Markers are kept
-The markers stay with the site. Hunt the kit again later — or hunt every marker of the organisation at once with the
-API — to find the kit's new sites.
+:::tip Hunt again
+What identifies the kit stays with the site: hunt it again later to find the kit's new sites — or every known kit at
+once, daily, from a scheduler with the API.
 :::
 
-## With the API
-
-| Step | Call |
-|---|---|
-| Read the markers of a run, or of a site | `GET /api/kit/markers?run={run_id}` or `?seed_id={site}` |
-| Read the candidate markers of a run's kit | `POST /api/reverse/{run_id}/markers` |
-| Add a marker by hand | `POST /api/kit/markers` |
-| Retire a marker, use it again, or set its own limit | `POST /api/kit/markers/{marker_id}` |
-| Hunt a run's kit, a site's, or every marker | `POST /api/kit/hunt` with `{"run": …}`, `{"seed_id": …}` or `{"all": true}` |
-| Hunt, then analyse the sites found (and only them) in their use case | `POST /api/kit/hunt` with `"analyze": true` |
-| Follow the hunt | `GET /api/kit/hunt/{job_id}` |
-| The sites it brought, in the findings | `GET /api/scam/triage?source=kit-siblings&since=new` |
-| Send the retained ones to Alerts | `POST /api/scam/triage/alerts` with `{"group": …, "ids": [...]}` |
-| Remove a wrong sibling | `POST /api/kit/siblings/remove` with `{"domain": …}` |
-
-```bash
-curl -s -X POST https://studio.example-bank.com/api/kit/hunt \
-  -H "Authorization: Bearer $STUDIO_API_KEY" -H "X-Studio-Org: example-bank" \
-  -H "Content-Type: application/json" -d '{"all": true, "analyze": true}'
-```
-
-Call it daily from a scheduler to keep up with the kits you already know: each morning, the new sites of known kits
-are already analysed and waiting in the findings, with their priority.
+The API calls are in the [API reference](/api/fraud-engineering-studio-api).

@@ -14,9 +14,9 @@ info:
     **Status.** This is the contract the Studio implements today.
 
     **Authentication.** Send `Authorization: Bearer <key>`. A key stands for one user of the Studio, with that user's
-    rights, and may be held to one organisation. Only a hash of each key is kept: a key is shown once, when it is made
-    (`python3 tools/api_keys.py create --name .. --user ..`). From the Studio's own machine a call without a key is the
-    browser's; from any other machine (the Studio listening on a network, `STUDIO_HOST`), every call needs a key.
+    rights, and may be held to one organisation. Only a hash of each key is kept: a key is shown once, when an
+    administrator creates it. From the Studio's own machine a call without a key is the browser's; from any other
+    machine, every call needs a key.
     A wrong or revoked key gets `401`.
 
     **Organisations.** One Studio can serve several organisations, each with its own data, calibrations and lists.
@@ -75,7 +75,7 @@ tags:
   - name: Settings
     description: This organisation's settings, for everyone who uses it.
   - name: Kit hunting
-    description: "The other sites of a phishing or fake-shop kit, found by its markers — its own files, script names, page title, the constant folder of its paths, the hosts it calls — in the public page scans. Operators only."
+    description: "The other sites of a phishing or fake-shop kit, found by what identifies the kit (its markers). Operators only."
 
 paths:
   /api/ping:
@@ -257,6 +257,33 @@ paths:
       responses:
         "200": { description: The list., content: { application/json: { schema: { type: object } } } }
         "400": { $ref: "#/components/responses/Invalid" }
+
+  /api/active/brands:
+    get:
+      tags: [Lists]
+      operationId: getProtectedBrands
+      summary: The brands this organisation protects
+      description: "Its brand scope: what Threat Monitoring keeps and what the findings connections ask for (`organizations: scope`). `missing_from_list`: brands of the scope not in the protected-brands list -- their findings would be left out; `not_protected`: entries of the list this organisation does not protect."
+      responses:
+        "200": { description: The scope., content: { application/json: { schema: { $ref: "#/components/schemas/BrandScope" } } } }
+    post:
+      tags: [Lists]
+      operationId: setProtectedBrands
+      summary: Protect a brand, or stop
+      description: "Adds brands to this organisation's scope, or takes them out. A brand must be in the protected-brands list first (POST /api/lists/protected-brands: its names and official domains). The next collection asks for it and the next analysis keeps its findings. Operators only."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                add: { type: array, items: { type: string }, example: [example-bank] }
+                remove: { type: array, items: { type: string } }
+      responses:
+        "200": { description: The scope., content: { application/json: { schema: { $ref: "#/components/schemas/BrandScope" } } } }
+        "400": { $ref: "#/components/responses/Invalid" }
+        "403": { description: Not for a client's users. }
 
   /api/lists/{list_id}:
     parameters: [{ name: list_id, in: path, required: true, schema: { type: string }, example: protected-brands }]
@@ -826,6 +853,8 @@ paths:
         - { name: priority, in: query, description: "critical, high, medium, low, none.", schema: { type: string }, example: "critical,high" }
         - { name: source, in: query, description: "The finding's source.", schema: { type: string }, example: kit-siblings }
         - { name: since, in: query, description: "new or changed since the pass before.", schema: { type: string, enum: [new, changed] } }
+        - { name: threat, in: query, description: "The threat state, at the date it was seen (threat_seen): live, cloaked, not_active, blocked, suspended, removed, offline, unreadable, none (not read yet); taken_down = blocked, suspended or removed.", schema: { type: string }, example: "live,cloaked" }
+        - { name: to_watch, in: query, description: "Only the findings to watch: no alert, and a low severity or not active yet. Computed, never stored.", schema: { type: boolean } }
         - { name: q, in: query, description: "A piece of the record's domain, address or name.", schema: { type: string }, example: example-shop }
         - { name: limit, in: query, schema: { type: integer } }
       responses:
@@ -1100,7 +1129,7 @@ paths:
               type: object
               properties:
                 state: { type: string, enum: [active, retired] }
-                max_scans: { type: integer, description: "A marker matched by more scans is retired by the hunt (default 300)." }
+                max_scans: { type: integer, description: "A marker matched by more scans is retired by the hunt." }
                 note: { type: string }
       responses:
         "200": { description: The marker., content: { application/json: { schema: { $ref: "#/components/schemas/KitMarker" } } } }
@@ -1111,7 +1140,7 @@ paths:
       tags: [Kit hunting]
       operationId: markersFromRun
       summary: Read the candidate markers of a run's kit
-      description: Its own files, script names, page title, the constant folders of its paths, the hosts its indicators call -- kept as active markers of its site.
+      description: What identifies the kit, read from the reverse engineering -- kept as active markers of its site.
       parameters: [{ name: run_id, in: path, required: true, schema: { type: string } }]
       responses:
         "200": { description: The run's markers., content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/KitMarker" } } } } }
@@ -1267,7 +1296,7 @@ paths:
 
 components:
   securitySchemes:
-    apiKey: { type: http, scheme: bearer, description: "A Studio API key (tools/api_keys.py)." }
+    apiKey: { type: http, scheme: bearer, description: "A Studio API key, created by an administrator." }
   parameters:
     scenario_id: { name: scenario_id, in: path, required: true, schema: { type: string }, example: FSL-CRP-001 }
     alert_id: { name: alert_id, in: path, required: true, schema: { type: string } }
@@ -1276,6 +1305,12 @@ components:
     NotFound: { description: Not found., content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { error: not found } } } }
     Invalid: { description: Invalid request., content: { application/json: { schema: { $ref: "#/components/schemas/Error" }, example: { error: "a note is required for this reason" } } } }
   schemas:
+    BrandScope:
+      type: object
+      properties:
+        brands: { type: array, items: { type: object, properties: { id: { type: string }, name: { type: string }, in_list: { type: boolean } } } }
+        missing_from_list: { type: array, items: { type: string } }
+        not_protected: { type: array, items: { type: string } }
     Settings:
       type: object
       properties:

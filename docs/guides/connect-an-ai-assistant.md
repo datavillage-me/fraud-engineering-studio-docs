@@ -12,17 +12,11 @@ comes with an **MCP server** (Model Context Protocol) that gives the assistant t
 
 ## 1. Make an API key
 
-On the machine where the Studio runs, in the Studio's folder:
-
-```bash
-python3 tools/api_keys.py create --name "AI assistant" --user <your user id>
-```
+Ask an administrator of the Studio for an API key for your user. They can hold it to one organisation; without
+that, the key acts for any organisation your user may see, chosen on each call.
 
 - The key is shown **once**. Copy it; the Studio keeps only a fingerprint of it.
-- `--org <organisation>` holds the key to one organisation. Without it, the key acts for any organisation the user may
-  see, chosen on each call.
-- `python3 tools/api_keys.py list` lists the keys and when each was last used. `python3 tools/api_keys.py revoke <id>`
-  stops one at once.
+- The administrator can see when each key was last used, and revoke one at once.
 
 ## 2. Declare the MCP server
 
