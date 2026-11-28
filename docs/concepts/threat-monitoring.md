@@ -9,7 +9,11 @@ description: The use cases that watch for fraud, and how what they find becomes 
 **Where:** Threat Monitoring
 
 Threat Monitoring is where detection runs on the data it watches. It is organised in **use cases** — one job each, kept
-apart because they are handled by different people:
+apart because they are handled by different people.
+
+It works alongside your real-time fraud engine, not instead of it: it watches what that engine does not see — sites,
+pages and accounts used in a fraud, patterns over time — and its scenarios can be exported to it.
+
 
 | Use case | What it watches |
 |---|---|
